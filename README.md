@@ -1,6 +1,6 @@
 # eval-harness-starter
 
-A small, readable eval harness for two kinds of AI systems: a RAG assistant that answers on-call questions from runbooks, and an incident-remediation agent that operates a simulated Kubernetes cluster. It is the companion repo for [PENDIENTE: blog post URL].
+A small, readable eval harness for two kinds of AI systems: a RAG assistant that answers on-call questions from runbooks, and an incident-remediation agent that operates a simulated Kubernetes cluster. It is the companion repo for the blog post [Eval harnesses for systems engineers](https://jreypo.io/2026/10/05/eval-harnesses-for-systems-engineers/).
 
 It is written for engineers who already know testing, SLOs, canary analysis and tracing, and want to see where evals differ. The rest of the README covers four of those differences:
 
