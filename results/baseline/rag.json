@@ -1,0 +1,2040 @@
+{
+ "run_id": "20261005T190700Z-e8a3be",
+ "started_at": "2026-10-05T19:07:00+00:00",
+ "suite": "rag",
+ "versions": {
+  "dataset": "de3fdb2b402e",
+  "prompts": "1c4cd06f21db",
+  "model": "claude-sonnet-5-5",
+  "judge_model": "claude-opus-5-5",
+  "provider": "stub",
+  "git_sha": "f7280ca6c3e8"
+ },
+ "trials": [
+  {
+   "case_id": "rag-001",
+   "trial_index": 0,
+   "output": {
+    "answer": "Create a new secret with `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`, patch the ingress `spec.tls[0].secretName` to it, then verify with `openssl s_client -connect <host>:443 -servername <host>` that notAfter matches. Delete the old secret only after verification.",
+    "retrieved": [
+     "ingress-tls.md#3",
+     "ingress-tls.md#0",
+     "ingress-tls.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ingress-tls.md#3]\n## Create the new secret and patch the ingress\n\nCreate a new TLS secret instead of editing the old one, so rollback is a one-line patch: `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`. Then patch the ingress to reference it: `kubectl -n <ns> patch ingress <name> --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/tls/0/secretName\",\"value\":\"<host>-tls-2026q4\"}]'`. The controller reloads within about 30 seconds without dropping connections.\n\n[ingress-tls.md#0]\n# Ingress TLS certificate rotation\n\nRotate the TLS certificate served by the shared ingress-nginx controller for a public hostname. Use this when a manually issued certificate is close to expiry or has been compromised. Certificates issued by cert-manager renew automatically; see cert-manager-renewal.md instead.\n\n[ingress-tls.md#4]\n## Verify the served certificate\n\nCheck what clients actually receive, not what the secret contains: `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject`. The notAfter date must match the new certificate. Repeat from outside the cluster, because an internal load balancer can serve a cached chain.\n\nQuestion: How do I swap the ingress to a new TLS secret and verify the served certificate?"
+    },
+    {
+     "role": "assistant",
+     "content": "Create a new secret with `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`, patch the ingress `spec.tls[0].secretName` to it, then verify with `openssl s_client -connect <host>:443 -servername <host>` that notAfter matches. Delete the old secret only after verification."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "ingress-tls.md#3",
+       "ingress-tls.md#0",
+       "ingress-tls.md#4"
+      ],
+      "relevant": [
+       "ingress-tls.md#3",
+       "ingress-tls.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 945,
+   "latency_ms": 2.06,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-002",
+   "trial_index": 0,
+   "output": {
+    "answer": "Run `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject` and check notAfter matches the new certificate. Repeat from outside the cluster in case a load balancer caches the old chain.",
+    "retrieved": [
+     "ingress-tls.md#4",
+     "cert-manager-renewal.md#4",
+     "ingress-tls.md#3"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ingress-tls.md#4]\n## Verify the served certificate\n\nCheck what clients actually receive, not what the secret contains: `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject`. The notAfter date must match the new certificate. Repeat from outside the cluster, because an internal load balancer can serve a cached chain.\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\n[ingress-tls.md#3]\n## Create the new secret and patch the ingress\n\nCreate a new TLS secret instead of editing the old one, so rollback is a one-line patch: `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`. Then patch the ingress to reference it: `kubectl -n <ns> patch ingress <name> --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/tls/0/secretName\",\"value\":\"<host>-tls-2026q4\"}]'`. The controller reloads within about 30 seconds without dropping connections.\n\nQuestion: After patching the ingress with a new TLS secret, how do I check which certificate clients actually receive?"
+    },
+    {
+     "role": "assistant",
+     "content": "Run `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject` and check notAfter matches the new certificate. Repeat from outside the cluster in case a load balancer caches the old chain."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "ingress-tls.md#4",
+       "cert-manager-renewal.md#4",
+       "ingress-tls.md#3"
+      ],
+      "relevant": [
+       "ingress-tls.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 880,
+   "latency_ms": 1.57,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-003",
+   "trial_index": 0,
+   "output": {
+    "answer": "After 24 hours with no TLS errors. Until then keep the old secret so you can roll back by patching the ingress back to it.",
+    "retrieved": [
+     "ingress-tls.md#5",
+     "ingress-tls.md#0",
+     "ingress-tls.md#3"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ingress-tls.md#5]\n## Clean up and rollback\n\nAfter 24 hours with no TLS errors, delete the old secret with `kubectl -n <ns> delete secret <old-secret>`. To roll back before then, patch the ingress back to the old secret name. Never delete the old secret before verification passes.\n\n[ingress-tls.md#0]\n# Ingress TLS certificate rotation\n\nRotate the TLS certificate served by the shared ingress-nginx controller for a public hostname. Use this when a manually issued certificate is close to expiry or has been compromised. Certificates issued by cert-manager renew automatically; see cert-manager-renewal.md instead.\n\n[ingress-tls.md#3]\n## Create the new secret and patch the ingress\n\nCreate a new TLS secret instead of editing the old one, so rollback is a one-line patch: `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`. Then patch the ingress to reference it: `kubectl -n <ns> patch ingress <name> --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/tls/0/secretName\",\"value\":\"<host>-tls-2026q4\"}]'`. The controller reloads within about 30 seconds without dropping connections.\n\nQuestion: When is it safe to delete the old TLS secret after an ingress certificate rotation?"
+    },
+    {
+     "role": "assistant",
+     "content": "After 24 hours with no TLS errors. Until then keep the old secret so you can roll back by patching the ingress back to it."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "ingress-tls.md#5",
+       "ingress-tls.md#0",
+       "ingress-tls.md#3"
+      ],
+      "relevant": [
+       "ingress-tls.md#5"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 766,
+   "latency_ms": 1.8,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-004",
+   "trial_index": 0,
+   "output": {
+    "answer": "Run `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --timeout=10m`. It honours PodDisruptionBudgets; if one blocks, scale the deployment up instead of using --disable-eviction.",
+    "retrieved": [
+     "node-drain.md#0",
+     "node-drain.md#3",
+     "node-drain.md#1"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[node-drain.md#0]\n# Draining a Kubernetes node for maintenance\n\nSafely evict workloads from a worker node before kernel patching, hardware replacement or instance retirement.\n\n[node-drain.md#3]\n## Drain with PodDisruptionBudgets respected\n\nRun `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --timeout=10m`. The drain honours PodDisruptionBudgets, so it can block if a deployment has too few healthy replicas elsewhere. Never pass `--disable-eviction` to force past a PDB; scale the affected deployment up first instead.\n\n[node-drain.md#1]\n## When to use\n\nUse for planned maintenance on a single node. For a node that is already NotReady and unreachable, skip the drain: cordon it and let the pod eviction timeout reschedule workloads, then follow the provider's instance replacement process.\n\nQuestion: How do I drain a node for kernel patching?"
+    },
+    {
+     "role": "assistant",
+     "content": "Run `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --timeout=10m`. It honours PodDisruptionBudgets; if one blocks, scale the deployment up instead of using --disable-eviction."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.5,
+      "retrieved": [
+       "node-drain.md#0",
+       "node-drain.md#3",
+       "node-drain.md#1"
+      ],
+      "relevant": [
+       "node-drain.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 668,
+   "latency_ms": 1.86,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-005",
+   "trial_index": 0,
+   "output": {
+    "answer": "List what is left with `kubectl get pods -A --field-selector spec.nodeName=<node>`. A PDB-blocked pod means the workload lacks spare capacity; a pod stuck Terminating usually has a finalizer or hung preStop hook.",
+    "retrieved": [
+     "node-drain.md#4",
+     "kafka-consumer-lag.md#4",
+     "disk-pressure.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[node-drain.md#4]\n## Stuck drains\n\nIf the drain hangs, list the remaining pods with `kubectl get pods -A --field-selector spec.nodeName=<node>`. A pod blocked by a PDB means the workload lacks spare capacity. A pod stuck in Terminating usually has a finalizer or a hung preStop hook; investigate before deleting it with `--grace-period=0`.\n\n[kafka-consumer-lag.md#4]\n## Stuck consumer\n\nIf one partition is not moving at all, restart the single consumer pod that owns it. Check its logs for a poison message first, because a restart will just hit the same message again.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\nQuestion: A node drain is stuck and not finishing. What should I check?"
+    },
+    {
+     "role": "assistant",
+     "content": "List what is left with `kubectl get pods -A --field-selector spec.nodeName=<node>`. A PDB-blocked pod means the workload lacks spare capacity; a pod stuck Terminating usually has a finalizer or hung preStop hook."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "node-drain.md#4",
+       "kafka-consumer-lag.md#4",
+       "disk-pressure.md#2"
+      ],
+      "relevant": [
+       "node-drain.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 714,
+   "latency_ms": 1.54,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-006",
+   "trial_index": 0,
+   "output": {
+    "answer": "Confirm the kubelet reports Ready, run `kubectl uncordon <node>`, and watch new pods schedule normally.",
+    "retrieved": [
+     "node-drain.md#5",
+     "node-drain.md#0",
+     "node-drain.md#1"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[node-drain.md#5]\n## Return the node to service\n\nAfter maintenance, confirm the kubelet reports Ready, then run `kubectl uncordon <node>`. Watch for a few minutes that new pods schedule and start normally.\n\n[node-drain.md#0]\n# Draining a Kubernetes node for maintenance\n\nSafely evict workloads from a worker node before kernel patching, hardware replacement or instance retirement.\n\n[node-drain.md#1]\n## When to use\n\nUse for planned maintenance on a single node. For a node that is already NotReady and unreachable, skip the drain: cordon it and let the pod eviction timeout reschedule workloads, then follow the provider's instance replacement process.\n\nQuestion: How do I return a node to service after maintenance?"
+    },
+    {
+     "role": "assistant",
+     "content": "Confirm the kubelet reports Ready, run `kubectl uncordon <node>`, and watch new pods schedule normally."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "node-drain.md#5",
+       "node-drain.md#0",
+       "node-drain.md#1"
+      ],
+      "relevant": [
+       "node-drain.md#5"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 508,
+   "latency_ms": 1.11,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-007",
+   "trial_index": 0,
+   "output": {
+    "answer": "First fence the old primary: stop it and remove it from the `orders-db-rw` endpoints. Then promote with `patronictl failover --candidate <replica> --force`.",
+    "retrieved": [
+     "postgres-failover.md#0",
+     "postgres-failover.md#3",
+     "postgres-failover.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[postgres-failover.md#3]\n## Fence the old primary\n\nBefore promoting anything, make sure the old primary cannot accept writes. Stop its pod or shut the instance down, and remove it from the `orders-db-rw` service endpoints. Skipping fencing risks split brain, where two primaries accept conflicting writes.\n\n[postgres-failover.md#4]\n## Promote the replica\n\nRun `patronictl failover --candidate <replica> --force`. Patroni promotes the replica, updates the leader key and repoints the `orders-db-rw` service. Applications using the service DNS name reconnect on their next retry.\n\nQuestion: The Postgres primary is down and Patroni has no leader. How do I fence the old primary and promote a replica?"
+    },
+    {
+     "role": "assistant",
+     "content": "First fence the old primary: stop it and remove it from the `orders-db-rw` endpoints. Then promote with `patronictl failover --candidate <replica> --force`."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.5,
+      "retrieved": [
+       "postgres-failover.md#0",
+       "postgres-failover.md#3",
+       "postgres-failover.md#4"
+      ],
+      "relevant": [
+       "postgres-failover.md#3",
+       "postgres-failover.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 644,
+   "latency_ms": 1.29,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-008",
+   "trial_index": 0,
+   "output": {
+    "answer": "Without fencing, the old primary may keep accepting writes and you get split brain: two primaries with conflicting writes.",
+    "retrieved": [
+     "postgres-failover.md#3",
+     "postgres-failover.md#0",
+     "postgres-failover.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[postgres-failover.md#3]\n## Fence the old primary\n\nBefore promoting anything, make sure the old primary cannot accept writes. Stop its pod or shut the instance down, and remove it from the `orders-db-rw` service endpoints. Skipping fencing risks split brain, where two primaries accept conflicting writes.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[postgres-failover.md#2]\n## Check replication lag before promoting\n\nRun `patronictl list` and note the lag column for each replica. Pick the replica with the lowest lag. If every replica lags by more than 30 seconds of WAL, page the database owner before promoting, because the promotion will lose those transactions.\n\nQuestion: Why do I have to fence the old Postgres primary before promoting a replica?"
+    },
+    {
+     "role": "assistant",
+     "content": "Without fencing, the old primary may keep accepting writes and you get split brain: two primaries with conflicting writes."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "postgres-failover.md#3",
+       "postgres-failover.md#0",
+       "postgres-failover.md#2"
+      ],
+      "relevant": [
+       "postgres-failover.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 607,
+   "latency_ms": 1.16,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-009",
+   "trial_index": 0,
+   "output": {
+    "answer": "After confirming writes succeed, run `patronictl reinit orders-db <old-member>` to rebuild it as a replica.",
+    "retrieved": [
+     "postgres-failover.md#5",
+     "postgres-failover.md#0",
+     "ledger-svc.md#1"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[postgres-failover.md#5]\n## Verify and rebuild\n\nConfirm writes succeed with a test insert into the `healthcheck` table. Then rebuild the old primary as a replica with `patronictl reinit orders-db <old-member>` so the cluster has redundancy again.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[ledger-svc.md#1]\n## Symptoms of stale balance reads\n\nCustomers see an old balance right after a payment. The ledger-svc metric `balance_cache_age_seconds` climbs above 60, usually after a Redis failover or a bulk correction applied directly to Postgres.\n\nQuestion: How do I rebuild the old Postgres primary as a replica after a failover?"
+    },
+    {
+     "role": "assistant",
+     "content": "After confirming writes succeed, run `patronictl reinit orders-db <old-member>` to rebuild it as a replica."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "postgres-failover.md#5",
+       "postgres-failover.md#0",
+       "ledger-svc.md#1"
+      ],
+      "relevant": [
+       "postgres-failover.md#5"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 540,
+   "latency_ms": 0.96,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-010",
+   "trial_index": 0,
+   "output": {
+    "answer": "On the node run `du -xh --max-depth=2 /var/lib | sort -h | tail`. Usual culprits: container images, large emptyDir volumes and unrotated logs in /var/log/pods.",
+    "retrieved": [
+     "disk-pressure.md#1",
+     "disk-pressure.md#2",
+     "disk-pressure.md#0"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[disk-pressure.md#1]\n## Symptoms\n\nPods are evicted with reason `Evicted` and message \"The node was low on resource: ephemeral-storage\". `kubectl describe node` shows the condition `DiskPressure=True`. Alert `NodeDiskPressure` fires.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\n[disk-pressure.md#0]\n# Node disk pressure\n\nRespond to a node reporting the DiskPressure condition, which makes the kubelet evict pods and refuse new ones.\n\nQuestion: Pods are evicted for low ephemeral-storage. How do I find what is filling the node disk?"
+    },
+    {
+     "role": "assistant",
+     "content": "On the node run `du -xh --max-depth=2 /var/lib | sort -h | tail`. Usual culprits: container images, large emptyDir volumes and unrotated logs in /var/log/pods."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.5,
+      "retrieved": [
+       "disk-pressure.md#1",
+       "disk-pressure.md#2",
+       "disk-pressure.md#0"
+      ],
+      "relevant": [
+       "disk-pressure.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 589,
+   "latency_ms": 0.95,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-011",
+   "trial_index": 0,
+   "output": {
+    "answer": "Prune unused images with `crictl rmi --prune`, fix the noisy application's log level or rotation rather than deleting pod logs, and never delete under /var/lib/kubelet.",
+    "retrieved": [
+     "disk-pressure.md#3",
+     "disk-pressure.md#0",
+     "disk-pressure.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[disk-pressure.md#3]\n## Reclaim space safely\n\nPrune unused images with `crictl rmi --prune`. For a pod writing huge logs, fix the log level or rotation in the application rather than deleting files under `/var/log/pods` by hand, because the kubelet tracks those files. Do not delete anything under `/var/lib/kubelet`.\n\n[disk-pressure.md#0]\n# Node disk pressure\n\nRespond to a node reporting the DiskPressure condition, which makes the kubelet evict pods and refuse new ones.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\nQuestion: How do I reclaim disk space on a node under DiskPressure?"
+    },
+    {
+     "role": "assistant",
+     "content": "Prune unused images with `crictl rmi --prune`, fix the noisy application's log level or rotation rather than deleting pod logs, and never delete under /var/lib/kubelet."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "disk-pressure.md#3",
+       "disk-pressure.md#0",
+       "disk-pressure.md#2"
+      ],
+      "relevant": [
+       "disk-pressure.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 632,
+   "latency_ms": 1.06,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-012",
+   "trial_index": 0,
+   "output": {
+    "answer": "Fix the underlying cause, then run `cmctl renew <name> -n <ns>`. Do not delete the certificate secret.",
+    "retrieved": [
+     "cert-manager-renewal.md#0",
+     "ingress-tls.md#0",
+     "cert-manager-renewal.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[cert-manager-renewal.md#0]\n# cert-manager certificate renewal failures\n\nDiagnose a Certificate resource managed by cert-manager that is not renewing.\n\n[ingress-tls.md#0]\n# Ingress TLS certificate rotation\n\nRotate the TLS certificate served by the shared ingress-nginx controller for a public hostname. Use this when a manually issued certificate is close to expiry or has been compromised. Certificates issued by cert-manager renew automatically; see cert-manager-renewal.md instead.\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\nQuestion: How do I force cert-manager to renew a certificate?"
+    },
+    {
+     "role": "assistant",
+     "content": "Fix the underlying cause, then run `cmctl renew <name> -n <ns>`. Do not delete the certificate secret."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "retrieved": [
+       "cert-manager-renewal.md#0",
+       "ingress-tls.md#0",
+       "cert-manager-renewal.md#4"
+      ],
+      "relevant": [
+       "cert-manager-renewal.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 546,
+   "latency_ms": 0.79,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-013",
+   "trial_index": 0,
+   "output": {
+    "answer": "Describe the Certificate, then follow CertificateRequest, Order and Challenge to the first error event, or run `cmctl status certificate <name> -n <ns>`.",
+    "retrieved": [
+     "cert-manager-renewal.md#2",
+     "cert-manager-renewal.md#3",
+     "cert-manager-renewal.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[cert-manager-renewal.md#2]\n## Inspect the certificate chain of resources\n\nRun `kubectl describe certificate <name> -n <ns>`, then follow the chain: CertificateRequest, Order, Challenge. The first resource with an error event is where the failure is. `cmctl status certificate <name> -n <ns>` prints the whole chain in one command.\n\n[cert-manager-renewal.md#3]\n## Common causes\n\nAn HTTP-01 challenge fails when the ingress for `/.well-known/acme-challenge/` is not reachable from the internet. A DNS-01 challenge fails when the DNS provider credentials secret has expired. Rate limiting from the ACME server shows up as a 429 in the Order events; wait it out rather than retrying in a loop.\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\nQuestion: How do I inspect the CertificateRequest, Order and Challenge chain for a failing certificate?"
+    },
+    {
+     "role": "assistant",
+     "content": "Describe the Certificate, then follow CertificateRequest, Order and Challenge to the first error event, or run `cmctl status certificate <name> -n <ns>`."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "cert-manager-renewal.md#2",
+       "cert-manager-renewal.md#3",
+       "cert-manager-renewal.md#4"
+      ],
+      "relevant": [
+       "cert-manager-renewal.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 718,
+   "latency_ms": 1.05,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-014",
+   "trial_index": 0,
+   "output": {
+    "answer": "Run `etcdctl compact <revision>`, then `etcdctl defrag` one member at a time, followers first and the leader last. Never defrag all members at once.",
+    "retrieved": [
+     "etcd-defrag.md#0",
+     "etcd-defrag.md#1",
+     "etcd-defrag.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[etcd-defrag.md#0]\n# etcd database size and defragmentation\n\nReduce the etcd database size when it approaches the space quota, before the cluster goes read-only.\n\n[etcd-defrag.md#1]\n## Symptoms\n\nAlert `EtcdDatabaseQuotaNearlyFull` fires above 80 percent of `--quota-backend-bytes`. If the quota is exceeded, etcd raises the `NOSPACE` alarm and the API server rejects all writes.\n\n[etcd-defrag.md#2]\n## Compact, then defragment one member at a time\n\nCompaction marks old revisions as free; defragmentation returns the space to the filesystem. Run `etcdctl compact <revision>` with the current revision, then `etcdctl defrag --endpoints=<one-member>` on each member in turn, followers first and the leader last. Defragmenting a member blocks it, so never defrag all members at once.\n\nQuestion: The etcd database is close to its space quota. How do I defragment it?"
+    },
+    {
+     "role": "assistant",
+     "content": "Run `etcdctl compact <revision>`, then `etcdctl defrag` one member at a time, followers first and the leader last. Never defrag all members at once."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.3333333333333333,
+      "retrieved": [
+       "etcd-defrag.md#0",
+       "etcd-defrag.md#1",
+       "etcd-defrag.md#2"
+      ],
+      "relevant": [
+       "etcd-defrag.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 622,
+   "latency_ms": 0.95,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-015",
+   "trial_index": 0,
+   "output": {
+    "answer": "After defragmenting, run `etcdctl alarm disarm`, then confirm writes with `kubectl create configmap etcd-probe --dry-run=server -o yaml`.",
+    "retrieved": [
+     "etcd-defrag.md#3",
+     "etcd-defrag.md#1",
+     "ledger-svc.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[etcd-defrag.md#3]\n## Clear the alarm\n\nIf the NOSPACE alarm was raised, run `etcdctl alarm disarm` after defragmentation. Then confirm writes work with `kubectl create configmap etcd-probe --dry-run=server -o yaml`.\n\n[etcd-defrag.md#1]\n## Symptoms\n\nAlert `EtcdDatabaseQuotaNearlyFull` fires above 80 percent of `--quota-backend-bytes`. If the quota is exceeded, etcd raises the `NOSPACE` alarm and the API server rejects all writes.\n\n[ledger-svc.md#2]\n## Flush the balance cache\n\nInvalidate the cached balances with `ledgerctl svc cache flush --scope balances`. The service repopulates entries from Postgres on the next read. Do not restart the ledger-svc pods to clear it; the cache lives in Redis and survives restarts.\n\nQuestion: etcd raised the NOSPACE alarm. How do I clear it?"
+    },
+    {
+     "role": "assistant",
+     "content": "After defragmenting, run `etcdctl alarm disarm`, then confirm writes with `kubectl create configmap etcd-probe --dry-run=server -o yaml`."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "etcd-defrag.md#3",
+       "etcd-defrag.md#1",
+       "ledger-svc.md#2"
+      ],
+      "relevant": [
+       "etcd-defrag.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 568,
+   "latency_ms": 0.96,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-016",
+   "trial_index": 0,
+   "output": {
+    "answer": "From a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. Failing lookups with working direct-IP connections means DNS.",
+    "retrieved": [
+     "coredns.md#1",
+     "coredns.md#2",
+     "cert-manager-renewal.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[coredns.md#1]\n## Symptoms\n\nApplications log `no such host` or `i/o timeout` when resolving service names. Errors are intermittent and spread across many unrelated services at once.\n\n[coredns.md#2]\n## Confirm it is DNS\n\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. If lookups fail or take seconds while direct IP connections work, the problem is DNS, not the dependency.\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\nQuestion: Many services log no such host errors. How do I confirm it is a DNS problem?"
+    },
+    {
+     "role": "assistant",
+     "content": "From a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. Failing lookups with working direct-IP connections means DNS."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.5,
+      "retrieved": [
+       "coredns.md#1",
+       "coredns.md#2",
+       "cert-manager-renewal.md#4"
+      ],
+      "relevant": [
+       "coredns.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 584,
+   "latency_ms": 1.07,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-017",
+   "trial_index": 0,
+   "output": {
+    "answer": "Patch the HPA rather than the deployment: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`, and make sure there is node capacity.",
+    "retrieved": [
+     "hpa-tuning.md#2",
+     "hpa-tuning.md#1",
+     "cert-manager-renewal.md#3"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[hpa-tuning.md#2]\n## Immediate mitigation\n\nRaise the ceiling rather than scaling the deployment directly, because the HPA will scale a manually edited deployment back down: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`. Check the cluster has node capacity for the new replicas, or the pods will sit Pending.\n\n[hpa-tuning.md#1]\n## Symptoms\n\nLatency rises and the HPA shows `current replicas = maxReplicas`. `kubectl get hpa <name>` reports CPU well above target.\n\n[cert-manager-renewal.md#3]\n## Common causes\n\nAn HTTP-01 challenge fails when the ingress for `/.well-known/acme-challenge/` is not reachable from the internet. A DNS-01 challenge fails when the DNS provider credentials secret has expired. Rate limiting from the ACME server shows up as a 429 in the Order events; wait it out rather than retrying in a loop.\n\nQuestion: How do I raise the HPA maxReplicas ceiling as an immediate mitigation?"
+    },
+    {
+     "role": "assistant",
+     "content": "Patch the HPA rather than the deployment: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`, and make sure there is node capacity."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "hpa-tuning.md#2",
+       "hpa-tuning.md#1",
+       "cert-manager-renewal.md#3"
+      ],
+      "relevant": [
+       "hpa-tuning.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 644,
+   "latency_ms": 1.15,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-018",
+   "trial_index": 0,
+   "output": {
+    "answer": "Reset the cursor with `ledgerctl sync cursor reset --to last-committed`, then `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.",
+    "retrieved": [
+     "ledger-sync.md#2",
+     "ledger-sync.md#0",
+     "ledger-sync.md#1"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ledger-sync.md#2]\n## Reset the sync cursor\n\nA failed sync leaves the cursor pointing at a partially copied batch. Reset the sync cursor to the last committed batch with `ledgerctl sync cursor reset --to last-committed`, then re-run the job manually with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.\n\n[ledger-sync.md#0]\n# ledger-sync batch job\n\nledger-sync is the nightly CronJob in namespace finance that copies settled ledger entries into the analytics warehouse. It does not serve user traffic. Stale balances in the warehouse dashboards come from this job, not from the online ledger service.\n\n[ledger-sync.md#1]\n## Symptoms of a failed sync\n\nThe finance dashboards show stale balances from the previous day, and alert `LedgerSyncLastSuccessTooOld` fires when the last successful sync is older than 26 hours.\n\nQuestion: How do I re-run the ledger-sync job after a failed nightly sync?"
+    },
+    {
+     "role": "assistant",
+     "content": "Reset the cursor with `ledgerctl sync cursor reset --to last-committed`, then `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "ledger-sync.md#2",
+       "ledger-sync.md#0",
+       "ledger-sync.md#1"
+      ],
+      "relevant": [
+       "ledger-sync.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 658,
+   "latency_ms": 1.29,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-019",
+   "trial_index": 0,
+   "output": {
+    "answer": "Scale the consumer deployment up to at most the number of partitions. Beyond that the topic needs more partitions from the owning team.",
+    "retrieved": [
+     "kafka-consumer-lag.md#2",
+     "kafka-consumer-lag.md#3",
+     "kafka-consumer-lag.md#0"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[kafka-consumer-lag.md#2]\n## Find the bottleneck\n\nRun `kafka-consumer-groups --describe --group <group>` and look at per-partition lag. Lag on a single partition points at a hot key or a stuck consumer. Lag spread evenly across partitions means the group lacks throughput.\n\n[kafka-consumer-lag.md#3]\n## Add throughput\n\nScale the consumer deployment up to at most the number of partitions; consumers beyond the partition count sit idle. If already at the partition count, the topic needs more partitions, which is a change for the owning team.\n\n[kafka-consumer-lag.md#0]\n# Kafka consumer lag\n\nRespond when a consumer group falls behind its topic and events are processed late.\n\nQuestion: Kafka consumer lag is high and spread evenly across partitions. How do I add throughput?"
+    },
+    {
+     "role": "assistant",
+     "content": "Scale the consumer deployment up to at most the number of partitions. Beyond that the topic needs more partitions from the owning team."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 0.5,
+      "retrieved": [
+       "kafka-consumer-lag.md#2",
+       "kafka-consumer-lag.md#3",
+       "kafka-consumer-lag.md#0"
+      ],
+      "relevant": [
+       "kafka-consumer-lag.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 564,
+   "latency_ms": 1.25,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-020",
+   "trial_index": 0,
+   "output": {
+    "answer": "`manifest unknown` means the tag does not exist. Roll back with `kubectl rollout undo deployment/<name>` and fix the pipeline's tag.",
+    "retrieved": [
+     "image-pull-backoff.md#2",
+     "image-pull-backoff.md#1",
+     "image-pull-backoff.md#3"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[image-pull-backoff.md#2]\n## Diagnose from the event message\n\n`manifest unknown` means the tag does not exist; the pipeline pushed a different tag than the manifest references. `unauthorized` means the imagePullSecret is missing or expired in that namespace. `i/o timeout` points at the registry or the node network.\n\n[image-pull-backoff.md#1]\n## Symptoms\n\nNew pods stay in `ImagePullBackOff`. `kubectl describe pod` shows events such as `manifest unknown` or `unauthorized`.\n\n[image-pull-backoff.md#3]\n## Recover\n\nFor a wrong tag, roll back the deployment with `kubectl rollout undo deployment/<name>` and fix the pipeline. For expired registry credentials, recreate the pull secret and delete the stuck pods so they retry immediately.\n\nQuestion: What does a manifest unknown event mean and how do I recover from it?"
+    },
+    {
+     "role": "assistant",
+     "content": "`manifest unknown` means the tag does not exist. Roll back with `kubectl rollout undo deployment/<name>` and fix the pipeline's tag."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "image-pull-backoff.md#2",
+       "image-pull-backoff.md#1",
+       "image-pull-backoff.md#3"
+      ],
+      "relevant": [
+       "image-pull-backoff.md#2",
+       "image-pull-backoff.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "regression",
+   "steps": 0,
+   "tokens": 582,
+   "latency_ms": 1.82,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-cap-01",
+   "trial_index": 0,
+   "output": {
+    "answer": "Reset the sync cursor with `ledgerctl sync cursor reset --to last-committed` and re-run the job with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.",
+    "retrieved": [
+     "ledger-sync.md#0",
+     "ledger-sync.md#2",
+     "ledger-sync.md#1"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ledger-sync.md#0]\n# ledger-sync batch job\n\nledger-sync is the nightly CronJob in namespace finance that copies settled ledger entries into the analytics warehouse. It does not serve user traffic. Stale balances in the warehouse dashboards come from this job, not from the online ledger service.\n\n[ledger-sync.md#2]\n## Reset the sync cursor\n\nA failed sync leaves the cursor pointing at a partially copied batch. Reset the sync cursor to the last committed batch with `ledgerctl sync cursor reset --to last-committed`, then re-run the job manually with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.\n\n[ledger-sync.md#1]\n## Symptoms of a failed sync\n\nThe finance dashboards show stale balances from the previous day, and alert `LedgerSyncLastSuccessTooOld` fires when the last successful sync is older than 26 hours.\n\nQuestion: The ledger service is showing stale balances after a sync. How do I reset it?"
+    },
+    {
+     "role": "assistant",
+     "content": "Reset the sync cursor with `ledgerctl sync cursor reset --to last-committed` and re-run the job with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": false,
+     "score": 0.0,
+     "detail": {
+      "recall@k": 0.0,
+      "reciprocal_rank": 0.0,
+      "retrieved": [
+       "ledger-sync.md#0",
+       "ledger-sync.md#2",
+       "ledger-sync.md#1"
+      ],
+      "relevant": [
+       "ledger-svc.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": false,
+     "score": null,
+     "detail": {
+      "verdict": "fail",
+      "reason": "Compared with the reference: fail."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 677,
+   "latency_ms": 1.46,
+   "error": null,
+   "passed": false
+  },
+  {
+   "case_id": "rag-cap-02",
+   "trial_index": 0,
+   "output": {
+    "answer": "Call the payments on-call line at +1 415 555 0137, available 24/7.",
+    "retrieved": [
+     "kafka-consumer-lag.md#3",
+     "disk-pressure.md#2",
+     "ingress-tls.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[kafka-consumer-lag.md#3]\n## Add throughput\n\nScale the consumer deployment up to at most the number of partitions; consumers beyond the partition count sit idle. If already at the partition count, the topic needs more partitions, which is a change for the owning team.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\n[ingress-tls.md#4]\n## Verify the served certificate\n\nCheck what clients actually receive, not what the secret contains: `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject`. The notAfter date must match the new certificate. Repeat from outside the cluster, because an internal load balancer can serve a cached chain.\n\nQuestion: What is the phone number for the payments team on-call escalation?"
+    },
+    {
+     "role": "assistant",
+     "content": "Call the payments on-call line at +1 415 555 0137, available 24/7."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "refusal",
+     "passed": false,
+     "score": null,
+     "detail": {
+      "refused": false
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 273,
+   "latency_ms": 0.51,
+   "error": null,
+   "passed": false
+  },
+  {
+   "case_id": "rag-cap-03",
+   "trial_index": 0,
+   "output": {
+    "answer": "Lower `ndots` in the pod dnsConfig so clients stop querying every search-path suffix.",
+    "retrieved": [
+     "coredns.md#3",
+     "coredns.md#2",
+     "disk-pressure.md#4"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[coredns.md#3]\n## Check CoreDNS health and load\n\nLook at `kubectl -n kube-system get pods -l k8s-app=kube-dns` and their logs. High CPU on CoreDNS pods with many NXDOMAIN answers usually means clients are searching through every search-path suffix; lowering `ndots` in the pod dnsConfig cuts the query volume.\n\n[coredns.md#2]\n## Confirm it is DNS\n\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. If lookups fail or take seconds while direct IP connections work, the problem is DNS, not the dependency.\n\n[disk-pressure.md#4]\n## Prevent recurrence\n\nSet ephemeral-storage requests and limits on noisy workloads so the scheduler accounts for them. If image churn is the cause, lower the kubelet `imageGCHighThresholdPercent` so garbage collection starts earlier.\n\nQuestion: How do I lower the DNS query volume caused by search-path lookups?"
+    },
+    {
+     "role": "assistant",
+     "content": "Lower `ndots` in the pod dnsConfig so clients stop querying every search-path suffix."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "coredns.md#3",
+       "coredns.md#2",
+       "disk-pressure.md#4"
+      ],
+      "relevant": [
+       "coredns.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": null,
+     "score": null,
+     "detail": {
+      "raw": "Looks right to me, the commands match the runbook."
+     },
+     "error": "judge returned invalid output"
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 572,
+   "latency_ms": 1.31,
+   "error": null,
+   "passed": false
+  },
+  {
+   "case_id": "rag-cap-04",
+   "trial_index": 0,
+   "output": {
+    "answer": "Run `patronictl list` and pick the replica with the lowest lag.",
+    "retrieved": [
+     "postgres-failover.md#2",
+     "coredns.md#1",
+     "postgres-failover.md#0"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[postgres-failover.md#2]\n## Check replication lag before promoting\n\nRun `patronictl list` and note the lag column for each replica. Pick the replica with the lowest lag. If every replica lags by more than 30 seconds of WAL, page the database owner before promoting, because the promotion will lose those transactions.\n\n[coredns.md#1]\n## Symptoms\n\nApplications log `no such host` or `i/o timeout` when resolving service names. Errors are intermittent and spread across many unrelated services at once.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\nQuestion: Before promoting a lagging Postgres replica, what do I check and when do I page someone?"
+    },
+    {
+     "role": "assistant",
+     "content": "Run `patronictl list` and pick the replica with the lowest lag."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "postgres-failover.md#2",
+       "coredns.md#1",
+       "postgres-failover.md#0"
+      ],
+      "relevant": [
+       "postgres-failover.md#2"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": false,
+     "score": null,
+     "detail": {
+      "verdict": "fail",
+      "reason": "Compared with the reference: fail."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 525,
+   "latency_ms": 1.08,
+   "error": null,
+   "passed": false
+  },
+  {
+   "case_id": "rag-cap-05",
+   "trial_index": 0,
+   "output": {
+    "answer": "If the warehouse row count for yesterday matches the ledger export count, the sync completed and you can close the alert.",
+    "retrieved": [
+     "ledger-sync.md#3",
+     "ledger-sync.md#0",
+     "ledger-sync.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[ledger-sync.md#3]\n## Verify the sync\n\nWatch the manual job logs until it prints `sync complete`. Compare the warehouse row count for yesterday against the ledger export count; they must match before you close the alert.\n\n[ledger-sync.md#0]\n# ledger-sync batch job\n\nledger-sync is the nightly CronJob in namespace finance that copies settled ledger entries into the analytics warehouse. It does not serve user traffic. Stale balances in the warehouse dashboards come from this job, not from the online ledger service.\n\n[ledger-sync.md#2]\n## Reset the sync cursor\n\nA failed sync leaves the cursor pointing at a partially copied batch. Reset the sync cursor to the last committed batch with `ledgerctl sync cursor reset --to last-committed`, then re-run the job manually with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.\n\nQuestion: Should the ledger-sync job be rerun if the warehouse row counts already match?"
+    },
+    {
+     "role": "assistant",
+     "content": "If the warehouse row count for yesterday matches the ledger export count, the sync completed and you can close the alert."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "ledger-sync.md#3",
+       "ledger-sync.md#0",
+       "ledger-sync.md#2"
+      ],
+      "relevant": [
+       "ledger-sync.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": null,
+     "score": null,
+     "detail": {
+      "verdict": "unknown",
+      "reason": "Compared with the reference: unknown."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 627,
+   "latency_ms": 0.93,
+   "error": null,
+   "passed": false
+  },
+  {
+   "case_id": "rag-cap-06",
+   "trial_index": 0,
+   "output": {
+    "answer": "Set `behavior.scaleUp.stabilizationWindowSeconds: 0` with a large percentage step, and keep a scale-down stabilization window of several minutes.",
+    "retrieved": [
+     "hpa-tuning.md#3",
+     "hpa-tuning.md#4",
+     "hpa-tuning.md#0"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[hpa-tuning.md#3]\n## Tune the scale-up behaviour\n\nFor spiky traffic, set `behavior.scaleUp.stabilizationWindowSeconds` to 0 and allow a large percentage step so the HPA reacts within one sync period. Keep a scale-down stabilization window of several minutes to avoid flapping.\n\n[hpa-tuning.md#4]\n## After the spike\n\nReview whether the new maximum should stay. Record the peak request rate so the capacity plan reflects it.\n\n[hpa-tuning.md#0]\n# Handling a traffic spike with the HorizontalPodAutoscaler\n\nRespond when a deployment is saturated by traffic faster than the autoscaler reacts, or when the HPA is pinned at its maximum.\n\nQuestion: How do I keep the HPA from flapping after a spike while still reacting quickly to new spikes?"
+    },
+    {
+     "role": "assistant",
+     "content": "Set `behavior.scaleUp.stabilizationWindowSeconds: 0` with a large percentage step, and keep a scale-down stabilization window of several minutes."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "hpa-tuning.md#3",
+       "hpa-tuning.md#4",
+       "hpa-tuning.md#0"
+      ],
+      "relevant": [
+       "hpa-tuning.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 556,
+   "latency_ms": 1.02,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-cap-07",
+   "trial_index": 0,
+   "output": {
+    "answer": "Check that consumer's logs for a poison message first; a restart would just hit the same message again.",
+    "retrieved": [
+     "kafka-consumer-lag.md#4",
+     "kafka-consumer-lag.md#0",
+     "kafka-consumer-lag.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[kafka-consumer-lag.md#4]\n## Stuck consumer\n\nIf one partition is not moving at all, restart the single consumer pod that owns it. Check its logs for a poison message first, because a restart will just hit the same message again.\n\n[kafka-consumer-lag.md#0]\n# Kafka consumer lag\n\nRespond when a consumer group falls behind its topic and events are processed late.\n\n[kafka-consumer-lag.md#2]\n## Find the bottleneck\n\nRun `kafka-consumer-groups --describe --group <group>` and look at per-partition lag. Lag on a single partition points at a hot key or a stuck consumer. Lag spread evenly across partitions means the group lacks throughput.\n\nQuestion: One Kafka partition is not moving at all. What should I check before restarting its consumer?"
+    },
+    {
+     "role": "assistant",
+     "content": "Check that consumer's logs for a poison message first; a restart would just hit the same message again."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "kafka-consumer-lag.md#4",
+       "kafka-consumer-lag.md#0",
+       "kafka-consumer-lag.md#2"
+      ],
+      "relevant": [
+       "kafka-consumer-lag.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 520,
+   "latency_ms": 0.9,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-cap-08",
+   "trial_index": 0,
+   "output": {
+    "answer": "`unauthorized` means the imagePullSecret is missing or expired. Recreate the pull secret and delete the stuck pods so they retry.",
+    "retrieved": [
+     "image-pull-backoff.md#2",
+     "image-pull-backoff.md#1",
+     "image-pull-backoff.md#3"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[image-pull-backoff.md#2]\n## Diagnose from the event message\n\n`manifest unknown` means the tag does not exist; the pipeline pushed a different tag than the manifest references. `unauthorized` means the imagePullSecret is missing or expired in that namespace. `i/o timeout` points at the registry or the node network.\n\n[image-pull-backoff.md#1]\n## Symptoms\n\nNew pods stay in `ImagePullBackOff`. `kubectl describe pod` shows events such as `manifest unknown` or `unauthorized`.\n\n[image-pull-backoff.md#3]\n## Recover\n\nFor a wrong tag, roll back the deployment with `kubectl rollout undo deployment/<name>` and fix the pipeline. For expired registry credentials, recreate the pull secret and delete the stuck pods so they retry immediately.\n\nQuestion: Image pulls fail with unauthorized in the pod events. What does that mean and how do I recover?"
+    },
+    {
+     "role": "assistant",
+     "content": "`unauthorized` means the imagePullSecret is missing or expired. Recreate the pull secret and delete the stuck pods so they retry."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "image-pull-backoff.md#2",
+       "image-pull-backoff.md#1",
+       "image-pull-backoff.md#3"
+      ],
+      "relevant": [
+       "image-pull-backoff.md#2",
+       "image-pull-backoff.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 594,
+   "latency_ms": 1.18,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-cap-09",
+   "trial_index": 0,
+   "output": {
+    "answer": "Deleting the secret leaves the ingress serving no certificate until the new one is issued. Use `cmctl renew` instead.",
+    "retrieved": [
+     "cert-manager-renewal.md#4",
+     "cert-manager-renewal.md#0",
+     "ingress-tls.md#0"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\n[cert-manager-renewal.md#0]\n# cert-manager certificate renewal failures\n\nDiagnose a Certificate resource managed by cert-manager that is not renewing.\n\n[ingress-tls.md#0]\n# Ingress TLS certificate rotation\n\nRotate the TLS certificate served by the shared ingress-nginx controller for a public hostname. Use this when a manually issued certificate is close to expiry or has been compromised. Certificates issued by cert-manager renew automatically; see cert-manager-renewal.md instead.\n\nQuestion: Why shouldn't I delete a cert-manager certificate secret to force a reissue?"
+    },
+    {
+     "role": "assistant",
+     "content": "Deleting the secret leaves the ingress serving no certificate until the new one is issued. Use `cmctl renew` instead."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "cert-manager-renewal.md#4",
+       "cert-manager-renewal.md#0",
+       "ingress-tls.md#0"
+      ],
+      "relevant": [
+       "cert-manager-renewal.md#4"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 571,
+   "latency_ms": 1.06,
+   "error": null,
+   "passed": true
+  },
+  {
+   "case_id": "rag-cap-10",
+   "trial_index": 0,
+   "output": {
+    "answer": "The `/.well-known/acme-challenge/` path on the ingress is not reachable from the internet.",
+    "retrieved": [
+     "cert-manager-renewal.md#3",
+     "ingress-tls.md#4",
+     "cert-manager-renewal.md#2"
+    ]
+   },
+   "transcript": [
+    {
+     "role": "user",
+     "content": "Runbook excerpts:\n\n[cert-manager-renewal.md#3]\n## Common causes\n\nAn HTTP-01 challenge fails when the ingress for `/.well-known/acme-challenge/` is not reachable from the internet. A DNS-01 challenge fails when the DNS provider credentials secret has expired. Rate limiting from the ACME server shows up as a 429 in the Order events; wait it out rather than retrying in a loop.\n\n[ingress-tls.md#4]\n## Verify the served certificate\n\nCheck what clients actually receive, not what the secret contains: `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject`. The notAfter date must match the new certificate. Repeat from outside the cluster, because an internal load balancer can serve a cached chain.\n\n[cert-manager-renewal.md#2]\n## Inspect the certificate chain of resources\n\nRun `kubectl describe certificate <name> -n <ns>`, then follow the chain: CertificateRequest, Order, Challenge. The first resource with an error event is where the failure is. `cmctl status certificate <name> -n <ns>` prints the whole chain in one command.\n\nQuestion: An HTTP-01 challenge keeps failing. What is the likely cause?"
+    },
+    {
+     "role": "assistant",
+     "content": "The `/.well-known/acme-challenge/` path on the ingress is not reachable from the internet."
+    }
+   ],
+   "grades": [
+    {
+     "grader": "retrieval",
+     "passed": true,
+     "score": 1.0,
+     "detail": {
+      "recall@k": 1.0,
+      "reciprocal_rank": 1.0,
+      "retrieved": [
+       "cert-manager-renewal.md#3",
+       "ingress-tls.md#4",
+       "cert-manager-renewal.md#2"
+      ],
+      "relevant": [
+       "cert-manager-renewal.md#3"
+      ]
+     },
+     "error": null
+    },
+    {
+     "grader": "faithfulness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Every command in the answer is pass-checked."
+     },
+     "error": null
+    },
+    {
+     "grader": "correctness",
+     "passed": true,
+     "score": null,
+     "detail": {
+      "verdict": "pass",
+      "reason": "Compared with the reference: pass."
+     },
+     "error": null
+    }
+   ],
+   "case_suite": "capability",
+   "steps": 0,
+   "tokens": 706,
+   "latency_ms": 0.77,
+   "error": null,
+   "passed": true
+  }
+ ],
+ "config": {
+  "provider": "stub",
+  "model": "claude-sonnet-5-5",
+  "judge_model": "claude-opus-5-5",
+  "trials_per_case": 1,
+  "concurrency": 4,
+  "gate": {
+   "regression_min_pass_rate": 0.95,
+   "max_new_failures": 0
+  }
+ }
+}

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import secrets
 import subprocess
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -75,6 +76,11 @@ def summarize(trials: list[Trial]) -> dict[str, SuiteSummary]:
     return out
 
 
+def overall(trials: list[Trial]) -> SuiteSummary:
+    """All trials as one suite, for headline numbers."""
+    return summarize([replace(t, case_suite="all") for t in trials])["all"]
+
+
 def _suite_order(name: str) -> tuple[int, str]:
     return ({"regression": 0, "capability": 1}.get(name, 2), name)
 
@@ -92,7 +98,10 @@ def format_report(result: RunResult) -> str:
         header += f" {f'pass@{k}':>7} {f'pass^{k}':>7}"
     header += f" {'unknown':>7} {'grader_err':>10} {'trial_err':>9}"
     lines.append(header)
-    for s in summaries.values():
+    rows = list(summaries.values())
+    if len(rows) > 1:
+        rows.append(overall(result.trials))
+    for s in rows:
         lo, hi = s.ci
         row = f"{s.suite:<12} {s.n:>6} {s.passed:>6} {s.rate:>7.2f}  [{lo:.2f}, {hi:.2f}]    "
         if k > 1:
@@ -176,12 +185,12 @@ def _expand(paths: list[Path]) -> list[Path]:
     return out
 
 
-def new_run(suite: str, versions: dict[str, str]) -> tuple[str, str]:
-    """Return (run_id, started_at) for a new run."""
+def new_run(suite: str) -> tuple[str, str]:
+    """Return (run_id, started_at) for a new run. The suffix only disambiguates."""
     now = datetime.now(timezone.utc)
-    started_at = now.isoformat(timespec="seconds")
-    tag = hash_text(suite, started_at, json.dumps(versions, sort_keys=True))[:6]
-    return f"{now.strftime('%Y%m%dT%H%M%SZ')}-{tag}", started_at
+    return f"{now.strftime('%Y%m%dT%H%M%SZ')}-{secrets.token_hex(3)}", now.isoformat(
+        timespec="seconds"
+    )
 
 
 def write_result(result: RunResult, path: Path | str) -> Path:

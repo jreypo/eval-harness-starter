@@ -59,6 +59,12 @@ def _parser() -> argparse.ArgumentParser:
     agent.add_argument("--out", help="result path (default results/latest/<name>.json)")
     agent.set_defaults(func=cmd_run_agent)
 
+    cmp = sub.add_parser("compare", help="baseline vs candidate, exit 1 if the gate fails")
+    cmp.add_argument("baseline")
+    cmp.add_argument("candidate")
+    cmp.add_argument("--config", help="take the gate from this config instead of the candidate run")
+    cmp.set_defaults(func=cmd_compare)
+
     cal = sub.add_parser("calibrate", help="judge vs human labels")
     cal.add_argument("target", choices=["rag-judge"])
     cal.add_argument("--config", default="configs/rag.yaml")
@@ -90,7 +96,7 @@ def cmd_run_rag(args: argparse.Namespace) -> int:
         run_one = rag.full_run_one(config)
         name, suite = "rag", "rag"
     versions = rag.versions(config, config["provider"], retrieval_only=args.retrieval_only)
-    run_id, started = new_run(suite, versions)
+    run_id, started = new_run(suite)
     trials = run_trials(cases, run_one, k=k, concurrency=config["concurrency"])
     result = RunResult(run_id, started, suite, versions, trials, config=_public(config))
     m = retrieval_metrics(trials)
@@ -109,7 +115,7 @@ def cmd_run_agent(args: argparse.Namespace) -> int:
     k = args.k or config["trials_per_task"]
     versions = agent_suite.versions(config, args.agent)
     name = "agent" if args.agent == "model" else "agent-reference"
-    run_id, started = new_run(name, versions)
+    run_id, started = new_run(name)
     run_one = agent_suite.make_run_one(config, agent=args.agent)
     trials = run_trials(cases, run_one, k=k, concurrency=config["concurrency"])
     result = RunResult(run_id, started, name, versions, trials, config=_public(config))
@@ -121,6 +127,19 @@ def cmd_run_agent(args: argparse.Namespace) -> int:
             return EXIT_FAIL
         print(f"\nOK: pass rate {rate:.2f} >= required {args.require_pass_rate:.2f}")
     return EXIT_OK
+
+
+def cmd_compare(args: argparse.Namespace) -> int:
+    from evalh.core.compare import compare, format_comparison
+    from evalh.core.report import load_result
+
+    baseline, candidate = load_result(args.baseline), load_result(args.candidate)
+    if baseline.suite != candidate.suite:
+        raise ValueError(f"cannot compare suite {baseline.suite!r} with {candidate.suite!r}")
+    gate = load_config(args.config)["gate"] if args.config else candidate.config.get("gate", {})
+    c = compare(baseline, candidate, gate)
+    print(format_comparison(c))
+    return EXIT_OK if c.gate_passed else EXIT_FAIL
 
 
 def cmd_calibrate(args: argparse.Namespace) -> int:
