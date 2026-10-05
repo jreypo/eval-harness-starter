@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nWhy shouldn't I delete a cert-manager certificate secret to force a reissue?\n\nREFERENCE:\nThe ingress would serve no certificate until the new one is issued; use cmctl renew instead.\n\nANSWER:\nDeleting the secret leaves the ingress serving no certificate until the new one is issued. Use `cmctl renew` instead.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 79,
+    "output_tokens": 16
+   }
+  }
+ }
+}

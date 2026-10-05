@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[ledger-sync.md#2]\n## Reset the sync cursor\n\nA failed sync leaves the cursor pointing at a partially copied batch. Reset the sync cursor to the last committed batch with `ledgerctl sync cursor reset --to last-committed`, then re-run the job manually with `kubectl -n finance create job ledger-sync-manual --from=cronjob/ledger-sync`.\n\nANSWER:\nReset the cursor with ledgerctl sync cursor reset --to last-committed and create a manual job from the cronjob.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 116,
+    "output_tokens": 19
+   }
+  }
+ }
+}

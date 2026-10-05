@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[kafka-consumer-lag.md#2]\n## Find the bottleneck\n\nRun `kafka-consumer-groups --describe --group <group>` and look at per-partition lag. Lag on a single partition points at a hot key or a stuck consumer. Lag spread evenly across partitions means the group lacks throughput.\n\n[kafka-consumer-lag.md#3]\n## Add throughput\n\nScale the consumer deployment up to at most the number of partitions; consumers beyond the partition count sit idle. If already at the partition count, the topic needs more partitions, which is a change for the owning team.\n\n[kafka-consumer-lag.md#0]\n# Kafka consumer lag\n\nRespond when a consumer group falls behind its topic and events are processed late.\n\nANSWER:\nScale the consumer deployment up to at most the number of partitions. Beyond that the topic needs more partitions from the owning team.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 207,
+    "output_tokens": 19
+   }
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[ingress-tls.md#5]\n## Clean up and rollback\n\nAfter 24 hours with no TLS errors, delete the old secret with `kubectl -n <ns> delete secret <old-secret>`. To roll back before then, patch the ingress back to the old secret name. Never delete the old secret before verification passes.\n\n[ingress-tls.md#0]\n# Ingress TLS certificate rotation\n\nRotate the TLS certificate served by the shared ingress-nginx controller for a public hostname. Use this when a manually issued certificate is close to expiry or has been compromised. Certificates issued by cert-manager renew automatically; see cert-manager-renewal.md instead.\n\n[ingress-tls.md#3]\n## Create the new secret and patch the ingress\n\nCreate a new TLS secret instead of editing the old one, so rollback is a one-line patch: `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`. Then patch the ingress to reference it: `kubectl -n <ns> patch ingress <name> --type=json -p '[{\"op\":\"replace\",\"path\":\"/spec/tls/0/secretName\",\"value\":\"<host>-tls-2026q4\"}]'`. The controller reloads within about 30 seconds without dropping connections.\n\nANSWER:\nAfter 24 hours with no TLS errors. Until then keep the old secret so you can roll back by patching the ingress back to it.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 312,
+    "output_tokens": 19
+   }
+  }
+ }
+}

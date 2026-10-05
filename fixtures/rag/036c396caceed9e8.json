@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "Runbook excerpts:\n\n[postgres-failover.md#5]\n## Verify and rebuild\n\nConfirm writes succeed with a test insert into the `healthcheck` table. Then rebuild the old primary as a replica with `patronictl reinit orders-db <old-member>` so the cluster has redundancy again.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[ledger-svc.md#1]\n## Symptoms of stale balance reads\n\nCustomers see an old balance right after a payment. The ledger-svc metric `balance_cache_age_seconds` climbs above 60, usually after a Redis failover or a bulk correction applied directly to Postgres.\n\nQuestion: How do I rebuild the old Postgres primary as a replica after a failover?",
+    "role": "user"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "system": "You are an on-call assistant. Answer the engineer's question using only the runbook excerpts provided. Be concise and give the concrete commands from the excerpts. If the excerpts do not contain the answer, reply exactly: I don't know based on the available runbooks.",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "After confirming writes succeed, run `patronictl reinit orders-db <old-member>` to rebuild it as a replica.",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 198,
+    "output_tokens": 26
+   }
+  }
+ }
+}

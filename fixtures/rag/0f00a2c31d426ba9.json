@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nHow do I inspect the CertificateRequest, Order and Challenge chain for a failing certificate?\n\nREFERENCE:\nDescribe the Certificate and follow CertificateRequest, Order and Challenge to the first error, or use cmctl status certificate.\n\nANSWER:\nDescribe the Certificate, then follow CertificateRequest, Order and Challenge to the first error event, or run `cmctl status certificate <name> -n <ns>`.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 101,
+    "output_tokens": 16
+   }
+  }
+ }
+}

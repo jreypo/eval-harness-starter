@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nPods are evicted for low ephemeral-storage. How do I find what is filling the node disk?\n\nREFERENCE:\nUse du -xh --max-depth=2 /var/lib on the node; usual culprits are container images, large emptyDir volumes and unrotated pod logs.\n\nANSWER:\nOn the node run `du -xh --max-depth=2 /var/lib | sort -h | tail`. Usual culprits: container images, large emptyDir volumes and unrotated logs in /var/log/pods.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 102,
+    "output_tokens": 16
+   }
+  }
+ }
+}

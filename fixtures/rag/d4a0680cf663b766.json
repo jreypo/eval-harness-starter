@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "Runbook excerpts:\n\n[disk-pressure.md#3]\n## Reclaim space safely\n\nPrune unused images with `crictl rmi --prune`. For a pod writing huge logs, fix the log level or rotation in the application rather than deleting files under `/var/log/pods` by hand, because the kubelet tracks those files. Do not delete anything under `/var/lib/kubelet`.\n\n[disk-pressure.md#0]\n# Node disk pressure\n\nRespond to a node reporting the DiskPressure condition, which makes the kubelet evict pods and refuse new ones.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\nQuestion: How do I reclaim disk space on a node under DiskPressure?",
+    "role": "user"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "system": "You are an on-call assistant. Answer the engineer's question using only the runbook excerpts provided. Be concise and give the concrete commands from the excerpts. If the excerpts do not contain the answer, reply exactly: I don't know based on the available runbooks.",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "Prune unused images with `crictl rmi --prune`, fix the noisy application's log level or rotation rather than deleting pod logs, and never delete under /var/lib/kubelet.",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 213,
+    "output_tokens": 42
+   }
+  }
+ }
+}

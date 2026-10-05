@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[postgres-failover.md#5]\n## Verify and rebuild\n\nConfirm writes succeed with a test insert into the `healthcheck` table. Then rebuild the old primary as a replica with `patronictl reinit orders-db <old-member>` so the cluster has redundancy again.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[ledger-svc.md#1]\n## Symptoms of stale balance reads\n\nCustomers see an old balance right after a payment. The ledger-svc metric `balance_cache_age_seconds` climbs above 60, usually after a Redis failover or a bulk correction applied directly to Postgres.\n\nANSWER:\nAfter confirming writes succeed, run `patronictl reinit orders-db <old-member>` to rebuild it as a replica.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 204,
+    "output_tokens": 19
+   }
+  }
+ }
+}

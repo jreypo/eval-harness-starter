@@ -4,7 +4,8 @@
 UV ?= uv
 EVALH = $(UV) run evalh
 
-.PHONY: test eval-retrieval eval-rag eval-agent eval-reference compare baseline demo-regression lint
+.PHONY: test lint eval-retrieval eval-rag calibrate fixtures \
+	eval-agent eval-reference compare baseline demo-regression
 
 test:
 	$(UV) run pytest
@@ -13,5 +14,18 @@ lint:
 	$(UV) run ruff check
 	$(UV) run ruff format --check
 
-eval-retrieval eval-rag eval-agent eval-reference compare baseline demo-regression:
+eval-retrieval:
+	$(EVALH) run rag --retrieval-only
+
+eval-rag:
+	$(EVALH) run rag
+
+calibrate:
+	$(EVALH) calibrate rag-judge
+
+# Regenerate the synthetic stub fixtures from the plan in scripts/gen_fixtures.py.
+fixtures:
+	$(UV) run python scripts/gen_fixtures.py
+
+eval-agent eval-reference compare baseline demo-regression:
 	@echo "$@: not implemented yet" && exit 1

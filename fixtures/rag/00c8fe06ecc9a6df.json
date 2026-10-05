@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nBefore promoting a lagging Postgres replica, what do I check and when do I page someone?\n\nREFERENCE:\nCheck lag with patronictl list and pick the lowest; if every replica lags by more than 30 seconds of WAL, page the database owner before promoting.\n\nANSWER:\nRun `patronictl list` and pick the replica with the lowest lag.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"fail\", \"reason\": \"Compared with the reference: fail.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 82,
+    "output_tokens": 16
+   }
+  }
+ }
+}

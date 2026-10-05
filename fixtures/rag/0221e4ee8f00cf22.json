@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\nANSWER:\nFix the cause, then run cmctl renew <name> -n <ns>. Do not delete the secret.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 86,
+    "output_tokens": 19
+   }
+  }
+ }
+}

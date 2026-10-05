@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[hpa-tuning.md#3]\n## Tune the scale-up behaviour\n\nFor spiky traffic, set `behavior.scaleUp.stabilizationWindowSeconds` to 0 and allow a large percentage step so the HPA reacts within one sync period. Keep a scale-down stabilization window of several minutes to avoid flapping.\n\n[hpa-tuning.md#4]\n## After the spike\n\nReview whether the new maximum should stay. Record the peak request rate so the capacity plan reflects it.\n\n[hpa-tuning.md#0]\n# Handling a traffic spike with the HorizontalPodAutoscaler\n\nRespond when a deployment is saturated by traffic faster than the autoscaler reacts, or when the HPA is pinned at its maximum.\n\nANSWER:\nSet `behavior.scaleUp.stabilizationWindowSeconds: 0` with a large percentage step, and keep a scale-down stabilization window of several minutes.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 198,
+    "output_tokens": 19
+   }
+  }
+ }
+}

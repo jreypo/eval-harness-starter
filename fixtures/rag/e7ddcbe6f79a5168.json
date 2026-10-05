@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[coredns.md#3]\n## Check CoreDNS health and load\n\nLook at `kubectl -n kube-system get pods -l k8s-app=kube-dns` and their logs. High CPU on CoreDNS pods with many NXDOMAIN answers usually means clients are searching through every search-path suffix; lowering `ndots` in the pod dnsConfig cuts the query volume.\n\n[coredns.md#2]\n## Confirm it is DNS\n\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. If lookups fail or take seconds while direct IP connections work, the problem is DNS, not the dependency.\n\n[disk-pressure.md#4]\n## Prevent recurrence\n\nSet ephemeral-storage requests and limits on noisy workloads so the scheduler accounts for them. If image churn is the cause, lower the kubelet `imageGCHighThresholdPercent` so garbage collection starts earlier.\n\nANSWER:\nLower `ndots` in the pod dnsConfig so clients stop querying every search-path suffix.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 228,
+    "output_tokens": 19
+   }
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nHow do I swap the ingress to a new TLS secret and verify the served certificate?\n\nREFERENCE:\nCreate the new secret, patch the ingress, verify with openssl s_client, then delete the old secret.\n\nANSWER:\nCreate a new secret with `kubectl -n <ns> create secret tls <host>-tls-2026q4 --cert=tls.crt --key=tls.key`, patch the ingress `spec.tls[0].secretName` to it, then verify with `openssl s_client -connect <host>:443 -servername <host>` that notAfter matches. Delete the old secret only after verification.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 128,
+    "output_tokens": 16
+   }
+  }
+ }
+}

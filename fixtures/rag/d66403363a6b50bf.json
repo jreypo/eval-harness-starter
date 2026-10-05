@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[etcd-defrag.md#0]\n# etcd database size and defragmentation\n\nReduce the etcd database size when it approaches the space quota, before the cluster goes read-only.\n\n[etcd-defrag.md#1]\n## Symptoms\n\nAlert `EtcdDatabaseQuotaNearlyFull` fires above 80 percent of `--quota-backend-bytes`. If the quota is exceeded, etcd raises the `NOSPACE` alarm and the API server rejects all writes.\n\n[etcd-defrag.md#2]\n## Compact, then defragment one member at a time\n\nCompaction marks old revisions as free; defragmentation returns the space to the filesystem. Run `etcdctl compact <revision>` with the current revision, then `etcdctl defrag --endpoints=<one-member>` on each member in turn, followers first and the leader last. Defragmenting a member blocks it, so never defrag all members at once.\n\nANSWER:\nRun `etcdctl compact <revision>`, then `etcdctl defrag` one member at a time, followers first and the leader last. Never defrag all members at once.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 237,
+    "output_tokens": 19
+   }
+  }
+ }
+}

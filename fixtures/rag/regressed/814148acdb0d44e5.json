@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[image-pull-backoff.md#2]\n## Diagnose from the event message\n\n`manifest unknown` means the tag does not exist; the pipeline pushed a different tag than the manifest references. `unauthorized` means the imagePullSecret is missing or expired in that namespace. `i/o timeout` points at the registry or the node network.\n\n[image-pull-backoff.md#1]\n## Symptoms\n\nNew pods stay in `ImagePullBackOff`. `kubectl describe pod` shows events such as `manifest unknown` or `unauthorized`.\n\n[image-pull-backoff.md#3]\n## Recover\n\nFor a wrong tag, roll back the deployment with `kubectl rollout undo deployment/<name>` and fix the pipeline. For expired registry credentials, recreate the pull secret and delete the stuck pods so they retry immediately.\n\nANSWER:\nRestart the image registry pods, then re-run the deploy pipeline.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"fail\", \"reason\": \"Every command in the answer is fail-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 205,
+    "output_tokens": 19
+   }
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[postgres-failover.md#2]\n## Check replication lag before promoting\n\nRun `patronictl list` and note the lag column for each replica. Pick the replica with the lowest lag. If every replica lags by more than 30 seconds of WAL, page the database owner before promoting, because the promotion will lose those transactions.\n\n[coredns.md#1]\n## Symptoms\n\nApplications log `no such host` or `i/o timeout` when resolving service names. Errors are intermittent and spread across many unrelated services at once.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\nANSWER:\nRun `patronictl list`, compare the lag column and pick the replica with the lowest lag. If every replica is more than 30 seconds of WAL behind, page the database owner before promoting.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 223,
+    "output_tokens": 19
+   }
+  }
+ }
+}

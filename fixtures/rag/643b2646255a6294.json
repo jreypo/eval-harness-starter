@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[postgres-failover.md#3]\n## Fence the old primary\n\nBefore promoting anything, make sure the old primary cannot accept writes. Stop its pod or shut the instance down, and remove it from the `orders-db-rw` service endpoints. Skipping fencing risks split brain, where two primaries accept conflicting writes.\n\n[postgres-failover.md#4]\n## Promote the replica\n\nRun `patronictl failover --candidate <replica> --force`. Patroni promotes the replica, updates the leader key and repoints the `orders-db-rw` service. Applications using the service DNS name reconnect on their next retry.\n\nANSWER:\nFence the old primary, then run patronictl failover --candidate <replica> --force.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 169,
+    "output_tokens": 19
+   }
+  }
+ }
+}

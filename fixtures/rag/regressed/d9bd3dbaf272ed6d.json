@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[node-drain.md#4]\n## Stuck drains\n\nIf the drain hangs, list the remaining pods with `kubectl get pods -A --field-selector spec.nodeName=<node>`. A pod blocked by a PDB means the workload lacks spare capacity. A pod stuck in Terminating usually has a finalizer or a hung preStop hook; investigate before deleting it with `--grace-period=0`.\n\n[kafka-consumer-lag.md#4]\n## Stuck consumer\n\nIf one partition is not moving at all, restart the single consumer pod that owns it. Check its logs for a poison message first, because a restart will just hit the same message again.\n\n[disk-pressure.md#2]\n## Find what is using the disk\n\nSSH or use a debug pod on the node and run `du -xh --max-depth=2 /var/lib | sort -h | tail`. The usual culprits are container images under `/var/lib/containerd`, large emptyDir volumes, and unrotated container logs under `/var/log/pods`.\n\nANSWER:\nList what is left with `kubectl get pods -A --field-selector spec.nodeName=<node>`. A PDB-blocked pod means the workload lacks spare capacity; a pod stuck Terminating usually has a finalizer or hung preStop hook.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 273,
+    "output_tokens": 19
+   }
+  }
+ }
+}

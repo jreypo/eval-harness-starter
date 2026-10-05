@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[ingress-tls.md#4]\n## Verify the served certificate\n\nCheck what clients actually receive, not what the secret contains: `openssl s_client -connect <host>:443 -servername <host> </dev/null | openssl x509 -noout -dates -subject`. The notAfter date must match the new certificate. Repeat from outside the cluster, because an internal load balancer can serve a cached chain.\n\nANSWER:\nRun openssl s_client -connect <host>:443 -servername <host> and check that notAfter matches the new certificate. Repeat from outside the cluster.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 133,
+    "output_tokens": 19
+   }
+  }
+ }
+}

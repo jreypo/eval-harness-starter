@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[postgres-failover.md#3]\n## Fence the old primary\n\nBefore promoting anything, make sure the old primary cannot accept writes. Stop its pod or shut the instance down, and remove it from the `orders-db-rw` service endpoints. Skipping fencing risks split brain, where two primaries accept conflicting writes.\n\n[postgres-failover.md#0]\n# Postgres primary failover\n\nPromote the streaming replica when the Postgres primary for the orders database is lost and Patroni has not failed over on its own.\n\n[postgres-failover.md#2]\n## Check replication lag before promoting\n\nRun `patronictl list` and note the lag column for each replica. Pick the replica with the lowest lag. If every replica lags by more than 30 seconds of WAL, page the database owner before promoting, because the promotion will lose those transactions.\n\nANSWER:\nWithout fencing, the old primary may keep accepting writes and you get split brain: two primaries with conflicting writes.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 238,
+    "output_tokens": 19
+   }
+  }
+ }
+}

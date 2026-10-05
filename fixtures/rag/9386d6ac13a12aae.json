@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[etcd-defrag.md#3]\n## Clear the alarm\n\nIf the NOSPACE alarm was raised, run `etcdctl alarm disarm` after defragmentation. Then confirm writes work with `kubectl create configmap etcd-probe --dry-run=server -o yaml`.\n\nANSWER:\nAfter defragmenting, run etcdctl alarm disarm and confirm writes work.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 76,
+    "output_tokens": 19
+   }
+  }
+ }
+}

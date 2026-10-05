@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nThe Postgres primary is down and Patroni has no leader. How do I fence the old primary and promote a replica?\n\nREFERENCE:\nFence the old primary first (stop it and remove it from orders-db-rw endpoints), then run patronictl failover --candidate <replica> --force.\n\nANSWER:\nFirst fence the old primary: stop it and remove it from the `orders-db-rw` endpoints. Then promote with `patronictl failover --candidate <replica> --force`.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 109,
+    "output_tokens": 16
+   }
+  }
+ }
+}

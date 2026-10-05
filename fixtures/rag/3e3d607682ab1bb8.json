@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[hpa-tuning.md#2]\n## Immediate mitigation\n\nRaise the ceiling rather than scaling the deployment directly, because the HPA will scale a manually edited deployment back down: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`. Check the cluster has node capacity for the new replicas, or the pods will sit Pending.\n\nANSWER:\nPatch the HPA maxReplicas higher instead of scaling the deployment, and check node capacity.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 108,
+    "output_tokens": 19
+   }
+  }
+ }
+}

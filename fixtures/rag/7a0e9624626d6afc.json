@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\netcd raised the NOSPACE alarm. How do I clear it?\n\nREFERENCE:\nAfter defragmenting, run etcdctl alarm disarm and confirm writes work with a server-side dry-run create.\n\nANSWER:\nAfter defragmenting, run `etcdctl alarm disarm`, then confirm writes with `kubectl create configmap etcd-probe --dry-run=server -o yaml`.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 80,
+    "output_tokens": 16
+   }
+  }
+ }
+}

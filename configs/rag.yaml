@@ -1,0 +1,23 @@
+# RAG suite: the system under test (retrieve + generate) and its judge.
+provider: ${EVAL_PROVIDER:-stub}    # stub | anthropic
+model: claude-sonnet-5-5
+judge_model: claude-opus-5-5        # pinned; changing it is a migration
+fixtures: fixtures/rag
+
+dataset:
+  corpus: datasets/runbooks
+  cases:
+    regression: datasets/rag/regression.jsonl
+    capability: datasets/rag/capability.jsonl
+  judge_labels: datasets/rag_judge_labels.jsonl
+
+retrieval:
+  top_k: 3
+  min_recall: 1.0                   # every labelled chunk must be in the top k
+
+trials_per_case: 1
+concurrency: 4
+
+gate:                               # applies to regression cases only
+  regression_min_pass_rate: 0.95
+  max_new_failures: 0               # paired flips pass -> fail

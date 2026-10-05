@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[hpa-tuning.md#2]\n## Immediate mitigation\n\nRaise the ceiling rather than scaling the deployment directly, because the HPA will scale a manually edited deployment back down: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`. Check the cluster has node capacity for the new replicas, or the pods will sit Pending.\n\n[hpa-tuning.md#1]\n## Symptoms\n\nLatency rises and the HPA shows `current replicas = maxReplicas`. `kubectl get hpa <name>` reports CPU well above target.\n\n[cert-manager-renewal.md#3]\n## Common causes\n\nAn HTTP-01 challenge fails when the ingress for `/.well-known/acme-challenge/` is not reachable from the internet. A DNS-01 challenge fails when the DNS provider credentials secret has expired. Rate limiting from the ACME server shows up as a 429 in the Order events; wait it out rather than retrying in a loop.\n\nANSWER:\nPatch the HPA rather than the deployment: `kubectl patch hpa <name> -p '{\"spec\":{\"maxReplicas\":<n>}}'`, and make sure there is node capacity.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 249,
+    "output_tokens": 19
+   }
+  }
+ }
+}

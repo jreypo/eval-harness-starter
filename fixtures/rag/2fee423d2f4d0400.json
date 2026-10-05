@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "EXCERPTS:\n[coredns.md#1]\n## Symptoms\n\nApplications log `no such host` or `i/o timeout` when resolving service names. Errors are intermittent and spread across many unrelated services at once.\n\n[coredns.md#2]\n## Confirm it is DNS\n\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. If lookups fail or take seconds while direct IP connections work, the problem is DNS, not the dependency.\n\n[cert-manager-renewal.md#4]\n## Force a renewal\n\nAfter fixing the cause, trigger a renewal with `cmctl renew <name> -n <ns>`. Do not delete the Certificate's secret to force reissue; the ingress would serve no certificate until the new one is issued.\n\nANSWER:\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. Failing lookups with working direct-IP connections means DNS.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant. Decide whether every factual claim and command in the ANSWER is supported by the EXCERPTS. Judge support only, not whether the excerpts are the right ones for the question. Use \"unknown\" if you cannot decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Every command in the answer is pass-checked.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 214,
+    "output_tokens": 19
+   }
+  }
+ }
+}

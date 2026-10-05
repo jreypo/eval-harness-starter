@@ -1,0 +1,28 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "QUESTION:\nMany services log no such host errors. How do I confirm it is a DNS problem?\n\nREFERENCE:\nFrom a debug pod run nslookup kubernetes.default and the service FQDN; if lookups fail while direct IP connections work, it is DNS.\n\nANSWER:\nFrom a debug pod run `nslookup kubernetes.default` and `nslookup <service>.<ns>.svc.cluster.local`. Failing lookups with working direct-IP connections means DNS.",
+    "role": "user"
+   }
+  ],
+  "model": "claude-opus-5-5",
+  "system": "You grade answers from an on-call assistant against a reference answer written by the service owner. \"pass\" if the ANSWER contains the essential actions in the REFERENCE and nothing that contradicts it. \"fail\" otherwise. Use \"unknown\" if the reference does not let you decide.\nReply with only a JSON object and nothing else:\n{\"verdict\": \"pass\" | \"fail\" | \"unknown\", \"reason\": \"<one sentence>\"}",
+  "tools": []
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "text": "{\"verdict\": \"pass\", \"reason\": \"Compared with the reference: pass.\"}",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 100,
+    "output_tokens": 16
+   }
+  }
+ }
+}
