@@ -1,0 +1,67 @@
+# Cost tiers, like any CI pipeline: cheap deterministic checks on every push,
+# model-backed suites on pull requests, the expensive agent suite nightly.
+name: evals
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+env:
+  # Real provider only when the secret exists (never on forks); stub otherwise.
+  EVAL_PROVIDER: ${{ secrets.ANTHROPIC_API_KEY != '' && 'anthropic' || 'stub' }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+jobs:
+  push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      EVAL_PROVIDER: stub
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync
+      - run: make lint
+      - run: make test eval-retrieval eval-reference
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - name: Go reference runner
+        working-directory: examples/go-agent-runner
+        run: go vet . && go run .
+
+  pull-request:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --extra anthropic
+      - run: make test eval-retrieval eval-reference
+      - run: make eval-rag
+      - run: make compare SUITES=rag
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rag-results
+          path: results/
+
+  nightly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --extra anthropic
+      - run: make eval-agent
+      # The committed baseline was produced by the stub; compare will flag the
+      # provider mismatch until a real-provider baseline is promoted.
+      - run: make compare SUITES=agent
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-results
+          path: results/

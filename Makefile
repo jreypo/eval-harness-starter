@@ -45,10 +45,12 @@ $(LATEST)/rag.json:
 $(LATEST)/agent.json:
 	$(MAKE) eval-agent
 
-# Canary analysis: latest vs baseline. Exits non-zero if either gate fails.
-compare: $(LATEST)/rag.json $(LATEST)/agent.json
+# Canary analysis: latest vs baseline. Exits non-zero if any gate fails.
+# Limit to one suite with e.g. `make compare SUITES=agent`.
+SUITES ?= rag agent
+compare: $(SUITES:%=$(LATEST)/%.json)
 	@rc=0; \
-	for s in rag agent; do \
+	for s in $(SUITES); do \
 		$(EVALH) compare $(BASELINE)/$$s.json $(LATEST)/$$s.json || rc=1; echo; \
 	done; exit $$rc
 
