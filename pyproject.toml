@@ -33,6 +33,8 @@ extend-exclude = ["examples"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "DTZ", "SIM", "RUF"]
+# Keep the explicit datetime.now(timezone.utc) spelling rather than the UTC alias.
+ignore = ["UP017"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
