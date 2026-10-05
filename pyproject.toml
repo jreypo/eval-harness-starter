@@ -1,0 +1,42 @@
+[project]
+name = "eval-harness-starter"
+version = "0.1.0"
+description = "A small, readable eval harness for a RAG assistant and an incident-remediation agent."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pyyaml>=6.0",
+    "rank-bm25>=0.2.2",
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.70"]
+
+[project.scripts]
+evalh = "evalh.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<0.13"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["examples"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "DTZ", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.uv.build-backend]
+module-name = "evalh"

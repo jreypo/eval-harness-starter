@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+.DS_Store
+
+# Run outputs are disposable; only the promoted baseline is versioned.
+results/*
+!results/baseline/
