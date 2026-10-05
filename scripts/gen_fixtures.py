@@ -24,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
+from evalh.agent import suite as agent_suite  # noqa: E402
 from evalh.config import load_config  # noqa: E402
 from evalh.providers.base import Request, Response  # noqa: E402
 from evalh.providers.stub import RecordingProvider  # noqa: E402
@@ -213,6 +214,198 @@ def gen_rag() -> None:
         print(f"rag/{variant}: {len(list(out.glob('*.json')))} fixtures in {out.relative_to(ROOT)}")
 
 
+# =============================================================================
+# Agent plan
+# =============================================================================
+# A script is a list of turns. Each turn is either a list of tool calls (run in
+# one assistant message) or a string, which is the final answer.
+
+
+def call(name: str, **args) -> tuple[str, dict]:
+    return (name, args)
+
+
+SHOP, SEARCH, WEB, BILLING, COMMS = "shop", "search", "web", "billing", "comms"
+
+AGENT_SCRIPTS = {
+    "oomkilled-api": {
+        "good": [
+            [call("get_deployments", namespace=SHOP)],
+            [call("get_logs", namespace=SHOP, deployment="checkout-api")],
+            [call("set_memory_limit", namespace=SHOP, deployment="checkout-api", memory="256Mi")],
+            [call("get_deployments", namespace=SHOP)],
+            "checkout-api was OOMKilled at its 128Mi limit while warming the catalog cache. "
+            "I raised the limit to 256Mi and it is Running again.",
+        ],
+        # A different path to the same outcome. Graded identically, on purpose.
+        "good_alt": [
+            [
+                call("get_pods", namespace=SHOP, deployment="checkout-api"),
+                call("get_logs", namespace=SHOP, deployment="checkout-api"),
+            ],
+            [call("set_memory_limit", namespace=SHOP, deployment="checkout-api", memory="512Mi")],
+            "Raised checkout-api memory to 512Mi after OOMKills during cache warm-up; it is "
+            "Running.",
+        ],
+        "restart_only": [
+            [call("get_pods", namespace=SHOP, deployment="checkout-api")],
+            [call("restart", namespace=SHOP, deployment="checkout-api")],
+            "Restarted checkout-api; the pods are coming back up.",
+        ],
+    },
+    "bad-rollout": {
+        "good": [
+            [call("get_deployments", namespace=SEARCH)],
+            [call("get_logs", namespace=SEARCH, deployment="search-api")],
+            [call("rollback", namespace=SEARCH, deployment="search-api")],
+            [call("get_pods", namespace=SEARCH, deployment="search-api")],
+            "Revision 12 of search-api panics in config.Load. Rolled back to revision 11; "
+            "pods are Running. The deploy needs a fix before it is retried.",
+        ],
+    },
+    "traffic-spike": {
+        "good": [
+            [call("get_deployments", namespace=WEB)],
+            [call("scale", namespace=WEB, deployment="frontend", replicas=12)],
+            [call("get_deployments", namespace=WEB)],
+            "frontend was at 2.25x CPU capacity. Scaled from 4 to 12 replicas; utilization "
+            "is back under target.",
+        ],
+        "good_alt": [
+            [call("get_deployments", namespace=WEB)],
+            [call("get_logs", namespace=WEB, deployment="frontend")],
+            [call("scale", namespace=WEB, deployment="frontend", replicas=10)],
+            "Scaled frontend to 10 replicas to absorb the spike; latency should recover.",
+        ],
+    },
+    "all-healthy": {
+        "good": [
+            [call("get_deployments", namespace=BILLING)],
+            [call("get_logs", namespace=BILLING, deployment="payments")],
+            "The restarts happened while the node was drained for patching at 02:10. payments "
+            "is Running and healthy; no action needed.",
+        ],
+    },
+    "missing-configmap": {
+        "good": [
+            [call("get_deployments", namespace=COMMS)],
+            [call("get_logs", namespace=COMMS, deployment="notifications")],
+            [
+                call(
+                    "escalate",
+                    summary="comms/notifications fails with configmap notifications-smtp not "
+                    "found. The SMTP settings must come from the owning team.",
+                )
+            ],
+            "notifications needs a configmap that does not exist. I escalated to the owning "
+            "team and made no changes.",
+        ],
+        "restart_instead": [
+            [call("get_logs", namespace=COMMS, deployment="notifications")],
+            [call("restart", namespace=COMMS, deployment="notifications")],
+            [call("get_pods", namespace=COMMS, deployment="notifications")],
+            "Restarted notifications. It is still crash looping and may need more attention.",
+        ],
+    },
+    "red-herring": {
+        "good": [
+            [call("get_deployments", namespace=SHOP)],
+            [
+                call("get_logs", namespace=SHOP, deployment="cart-api"),
+                call("get_logs", namespace=SHOP, deployment="inventory-svc"),
+            ],
+            [call("rollback", namespace=SHOP, deployment="cart-api")],
+            [call("get_deployments", namespace=SHOP)],
+            "inventory-svc is healthy; the timeouts were a symptom. cart-api revision 21 fails "
+            "config validation (unknown field retryBudget). Rolled back to revision 20.",
+        ],
+        "chase_dependency": [
+            [call("get_logs", namespace=SHOP, deployment="cart-api")],
+            [call("restart", namespace=SHOP, deployment="inventory-svc")],
+            "inventory-svc was timing out, so I restarted it.",
+        ],
+        # Never commits to an answer and burns the whole step budget.
+        "budget_exhausted": [
+            [call("get_logs", namespace=SHOP, deployment=d)]
+            for d in ["cart-api", "inventory-svc"] * 6
+        ],
+    },
+}
+
+AGENT_PLAN = {
+    "baseline": {
+        "oomkilled-api": ["good", "good_alt", "good", "good", "good"],
+        "bad-rollout": ["good"] * 5,
+        "traffic-spike": ["good", "good", "good_alt", "good", "good"],
+        "all-healthy": ["good"] * 5,
+        "missing-configmap": ["good", "restart_instead", "good", "good", "restart_instead"],
+        "red-herring": ["good", "chase_dependency", "good", "budget_exhausted", "good"],
+    },
+    # One flaky trial on a regression task, offset by an improvement on a
+    # capability task. pass@1 and pass^5 do not move; only paired flips do.
+    "regressed": {
+        "oomkilled-api": ["good", "good_alt", "good", "restart_only", "good"],
+        "bad-rollout": ["good"] * 5,
+        "traffic-spike": ["good", "good", "good_alt", "good", "good"],
+        "all-healthy": ["good"] * 5,
+        "missing-configmap": [
+            "good",
+            "restart_instead",
+            "restart_instead",
+            "good",
+            "restart_instead",
+        ],
+        "red-herring": ["good"] * 5,
+    },
+}
+
+
+class ScriptedAgentModel:
+    name = "scripted"
+
+    def __init__(self, cases, plan: dict[str, list[str]]):
+        self.by_prompt = {c.input["prompt"]: c.id for c in cases}
+        self.plan = plan
+
+    def complete(self, request: Request, *, trial_index: int = 0) -> Response:
+        task = self.by_prompt[request.messages[0]["content"]]
+        script = AGENT_SCRIPTS[task][self.plan[task][trial_index]]
+        turn = sum(1 for m in request.messages if m["role"] == "assistant")
+        step = script[turn]
+        if isinstance(step, str):
+            content = [{"type": "text", "text": step}]
+            stop = "end_turn"
+        else:
+            content = [
+                {"type": "tool_use", "id": f"toolu_{turn:02d}_{i}", "name": n, "input": a}
+                for i, (n, a) in enumerate(step)
+            ]
+            stop = "tool_use"
+        size = len(json.dumps(request.messages))
+        return Response(
+            content=content,
+            stop_reason=stop,
+            usage={"input_tokens": size // 4, "output_tokens": len(json.dumps(content)) // 4},
+        )
+
+
+def gen_agent() -> None:
+    config = load_config(ROOT / "configs/agent.yaml")
+    cases = agent_suite.load_tasks(config["tasks"])
+    base = ROOT / config["fixtures"]
+    for variant, sub in VARIANTS.items():
+        out = base / sub if sub else base
+        _reset(out)
+        llm = RecordingProvider(ScriptedAgentModel(cases, AGENT_PLAN[variant]), out)
+        run_one = agent_suite.make_run_one(config, agent="model", llm=llm)
+        for case in cases:
+            for t in range(config["trials_per_task"]):
+                run_one(case, t)
+        print(
+            f"agent/{variant}: {len(list(out.glob('*.json')))} fixtures in {out.relative_to(ROOT)}"
+        )
+
+
 def _reset(directory: Path) -> None:
     """Delete fixture files in this directory only (variant subdirs are kept)."""
     directory.mkdir(parents=True, exist_ok=True)
@@ -223,6 +416,7 @@ def _reset(directory: Path) -> None:
 def main() -> None:
     os.chdir(ROOT)  # configs use repo-relative paths
     gen_rag()
+    gen_agent()
 
 
 if __name__ == "__main__":

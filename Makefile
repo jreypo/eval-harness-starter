@@ -27,5 +27,12 @@ calibrate:
 fixtures:
 	$(UV) run python scripts/gen_fixtures.py
 
-eval-agent eval-reference compare baseline demo-regression:
+eval-agent:
+	$(EVALH) run agent
+
+# The reference agent must score 100%. If it does not, a task or grader is wrong.
+eval-reference:
+	$(EVALH) run agent --agent reference --k 3 --require-pass-rate 1.0
+
+compare baseline demo-regression:
 	@echo "$@: not implemented yet" && exit 1

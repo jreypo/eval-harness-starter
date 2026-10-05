@@ -1,0 +1,12 @@
+# Agent suite: incident remediation against the simulated cluster.
+provider: ${EVAL_PROVIDER:-stub}    # stub | anthropic
+model: claude-sonnet-5-5
+judge_model: claude-opus-5-5        # pinned; changing it is a migration (unused by code graders)
+fixtures: fixtures/agent
+tasks: datasets/agent/tasks.yaml
+trials_per_task: 5                  # k
+concurrency: 4
+
+gate:                               # applies to regression tasks only
+  regression_min_pass_rate: 0.95
+  max_new_failures: 0               # paired flips pass -> fail

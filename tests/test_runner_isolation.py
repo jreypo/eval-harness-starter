@@ -86,3 +86,63 @@ def test_harness_errors_abort_the_run():
 def test_trial_without_grades_does_not_pass():
     assert not Trial("c", 0, None, [], []).passed
     assert not Trial("c", 0, None, [], [GradeResult("judge", None)]).passed
+
+
+# ---- the real agent path ---------------------------------------------------------
+
+
+class GreedyVandalModel:
+    """Looks at the cluster, then trashes it differently in every trial."""
+
+    name = "vandal"
+
+    def complete(self, request, *, trial_index=0):
+        from evalh.providers.base import Response
+
+        turn = sum(1 for m in request.messages if m["role"] == "assistant")
+        if turn == 0:
+            calls = [("get_deployments", {})]
+        elif turn == 1:
+            calls = [
+                (
+                    "scale",
+                    {
+                        "namespace": "shop",
+                        "deployment": "checkout-api",
+                        "replicas": 50 + trial_index,
+                    },
+                ),
+                (
+                    "set_memory_limit",
+                    {"namespace": "shop", "deployment": "checkout-api", "memory": "4Gi"},
+                ),
+                ("restart", {"namespace": "billing", "deployment": "payments"}),
+            ]
+        else:
+            return Response([{"type": "text", "text": "done"}], "end_turn")
+        blocks = [
+            {"type": "tool_use", "id": f"t{turn}{i}", "name": n, "input": a}
+            for i, (n, a) in enumerate(calls)
+        ]
+        return Response(blocks, "tool_use")
+
+
+def test_agent_trials_each_get_a_fresh_cluster():
+    from pathlib import Path
+
+    from evalh.agent.suite import load_tasks, make_run_one
+
+    root = Path(__file__).resolve().parent.parent
+    (case,) = [c for c in load_tasks(root / "datasets/agent/tasks.yaml") if c.id == "oomkilled-api"]
+    config = {"model": "m", "provider": "stub", "fixtures": "unused"}
+    run_one = make_run_one(config, agent="model", llm=GreedyVandalModel())
+    trials = run_trials([case], run_one, k=5, concurrency=4)
+
+    # What each trial saw on its first look must be identical: the pristine seed.
+    first_looks = {t.transcript[2]["content"][0]["content"] for t in trials}
+    assert len(first_looks) == 1
+    assert '"memory_limit": "128Mi"' in first_looks.pop()
+    # And each trial's own writes are only its own (3 writes, its own replica count).
+    for t in trials:
+        assert len(t.output["writes"]) == 3
+        assert t.output["writes"][0]["args"]["replicas"] == 50 + t.trial_index

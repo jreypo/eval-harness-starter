@@ -1,0 +1,315 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "Checkout is failing in namespace shop. The cart team says inventory-svc is timing out. Investigate and fix it.",
+    "role": "user"
+   },
+   {
+    "content": [
+     {
+      "id": "toolu_00_0",
+      "input": {
+       "namespace": "shop"
+      },
+      "name": "get_deployments",
+      "type": "tool_use"
+     }
+    ],
+    "role": "assistant"
+   },
+   {
+    "content": [
+     {
+      "content": "[{\"cpu_utilization\": 0.4, \"memory_limit\": \"256Mi\", \"name\": \"cart-api\", \"namespace\": \"shop\", \"reason\": \"Error\", \"replicas\": 2, \"revision\": 21, \"status\": \"CrashLoopBackOff\"}, {\"cpu_utilization\": 0.4, \"memory_limit\": \"256Mi\", \"name\": \"inventory-svc\", \"namespace\": \"shop\", \"reason\": \"\", \"replicas\": 2, \"revision\": 8, \"status\": \"Running\"}]",
+      "tool_use_id": "toolu_00_0",
+      "type": "tool_result"
+     }
+    ],
+    "role": "user"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "system": "You are an on-call SRE agent with tool access to a Kubernetes cluster.\nInvestigate before you act, and make the smallest change that resolves the incident.\nNever modify deployments or namespaces unrelated to the incident, and never delete pods.\nIf the fix needs something your tools cannot provide, such as missing configuration or secrets, call escalate with a short summary instead of guessing.\nIf nothing is wrong, change nothing and say so.\nWhen you are done, reply with a one-paragraph summary and no tool calls.",
+  "tools": [
+   {
+    "description": "List deployments with revision, replicas, memory limit, status, reason and CPU utilization (1.0 = saturated). Omit namespace to list all namespaces.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [],
+     "type": "object"
+    },
+    "name": "get_deployments"
+   },
+   {
+    "description": "List pods of a deployment with status and restart counts.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "get_pods"
+   },
+   {
+    "description": "Recent logs and events for a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "get_logs"
+   },
+   {
+    "description": "Set the container memory limit of a deployment, e.g. '512Mi'.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "memory": {
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment",
+      "memory"
+     ],
+     "type": "object"
+    },
+    "name": "set_memory_limit"
+   },
+   {
+    "description": "Set the replica count of a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "replicas": {
+       "type": "integer"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment",
+      "replicas"
+     ],
+     "type": "object"
+    },
+    "name": "scale"
+   },
+   {
+    "description": "Rollout-restart a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "restart"
+   },
+   {
+    "description": "Roll a deployment back to the previous revision, or to to_revision.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "to_revision": {
+       "type": "integer"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "rollback"
+   },
+   {
+    "description": "Delete a single pod. Its ReplicaSet recreates it.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "pod": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "pod"
+     ],
+     "type": "object"
+    },
+    "name": "delete_pod"
+   },
+   {
+    "description": "Page the owning team with a summary. Use when the fix needs something you cannot do with these tools.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "summary": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "summary"
+     ],
+     "type": "object"
+    },
+    "name": "escalate"
+   }
+  ]
+ },
+ "responses": {
+  "0": {
+   "content": [
+    {
+     "id": "toolu_01_0",
+     "input": {
+      "deployment": "cart-api",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    },
+    {
+     "id": "toolu_01_1",
+     "input": {
+      "deployment": "inventory-svc",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    }
+   ],
+   "stop_reason": "tool_use",
+   "usage": {
+    "input_tokens": 191,
+    "output_tokens": 61
+   }
+  },
+  "2": {
+   "content": [
+    {
+     "id": "toolu_01_0",
+     "input": {
+      "deployment": "cart-api",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    },
+    {
+     "id": "toolu_01_1",
+     "input": {
+      "deployment": "inventory-svc",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    }
+   ],
+   "stop_reason": "tool_use",
+   "usage": {
+    "input_tokens": 191,
+    "output_tokens": 61
+   }
+  },
+  "4": {
+   "content": [
+    {
+     "id": "toolu_01_0",
+     "input": {
+      "deployment": "cart-api",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    },
+    {
+     "id": "toolu_01_1",
+     "input": {
+      "deployment": "inventory-svc",
+      "namespace": "shop"
+     },
+     "name": "get_logs",
+     "type": "tool_use"
+    }
+   ],
+   "stop_reason": "tool_use",
+   "usage": {
+    "input_tokens": 191,
+    "output_tokens": 61
+   }
+  }
+ }
+}

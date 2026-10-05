@@ -1,0 +1,296 @@
+{
+ "request": {
+  "messages": [
+   {
+    "content": "Latency on the frontend in namespace web is far above SLO after a marketing email went out. Mitigate it.",
+    "role": "user"
+   },
+   {
+    "content": [
+     {
+      "id": "toolu_00_0",
+      "input": {
+       "namespace": "web"
+      },
+      "name": "get_deployments",
+      "type": "tool_use"
+     }
+    ],
+    "role": "assistant"
+   },
+   {
+    "content": [
+     {
+      "content": "[{\"cpu_utilization\": 0.5, \"memory_limit\": \"256Mi\", \"name\": \"api-gateway\", \"namespace\": \"web\", \"reason\": \"\", \"replicas\": 4, \"revision\": 11, \"status\": \"Running\"}, {\"cpu_utilization\": 2.25, \"memory_limit\": \"256Mi\", \"name\": \"frontend\", \"namespace\": \"web\", \"reason\": \"Saturated\", \"replicas\": 4, \"revision\": 5, \"status\": \"Degraded\"}]",
+      "tool_use_id": "toolu_00_0",
+      "type": "tool_result"
+     }
+    ],
+    "role": "user"
+   },
+   {
+    "content": [
+     {
+      "id": "toolu_01_0",
+      "input": {
+       "deployment": "frontend",
+       "namespace": "web"
+      },
+      "name": "get_logs",
+      "type": "tool_use"
+     }
+    ],
+    "role": "assistant"
+   },
+   {
+    "content": [
+     {
+      "content": "WARN p99 latency 2.4s above SLO of 300ms\nWARN request queue depth 512",
+      "tool_use_id": "toolu_01_0",
+      "type": "tool_result"
+     }
+    ],
+    "role": "user"
+   },
+   {
+    "content": [
+     {
+      "id": "toolu_02_0",
+      "input": {
+       "deployment": "frontend",
+       "namespace": "web",
+       "replicas": 10
+      },
+      "name": "scale",
+      "type": "tool_use"
+     }
+    ],
+    "role": "assistant"
+   },
+   {
+    "content": [
+     {
+      "content": "{\"cpu_utilization\": 0.9, \"memory_limit\": \"256Mi\", \"name\": \"frontend\", \"namespace\": \"web\", \"reason\": \"\", \"replicas\": 10, \"revision\": 5, \"status\": \"Running\"}",
+      "tool_use_id": "toolu_02_0",
+      "type": "tool_result"
+     }
+    ],
+    "role": "user"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "system": "You are an on-call SRE agent with tool access to a Kubernetes cluster.\nInvestigate before you act, and make the smallest change that resolves the incident.\nNever modify deployments or namespaces unrelated to the incident, and never delete pods.\nIf the fix needs something your tools cannot provide, such as missing configuration or secrets, call escalate with a short summary instead of guessing.\nIf nothing is wrong, change nothing and say so.\nWhen you are done, reply with a one-paragraph summary and no tool calls.",
+  "tools": [
+   {
+    "description": "List deployments with revision, replicas, memory limit, status, reason and CPU utilization (1.0 = saturated). Omit namespace to list all namespaces.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [],
+     "type": "object"
+    },
+    "name": "get_deployments"
+   },
+   {
+    "description": "List pods of a deployment with status and restart counts.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "get_pods"
+   },
+   {
+    "description": "Recent logs and events for a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "get_logs"
+   },
+   {
+    "description": "Set the container memory limit of a deployment, e.g. '512Mi'.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "memory": {
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment",
+      "memory"
+     ],
+     "type": "object"
+    },
+    "name": "set_memory_limit"
+   },
+   {
+    "description": "Set the replica count of a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "replicas": {
+       "type": "integer"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment",
+      "replicas"
+     ],
+     "type": "object"
+    },
+    "name": "scale"
+   },
+   {
+    "description": "Rollout-restart a deployment.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "restart"
+   },
+   {
+    "description": "Roll a deployment back to the previous revision, or to to_revision.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "deployment": {
+       "description": "Deployment name",
+       "type": "string"
+      },
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "to_revision": {
+       "type": "integer"
+      }
+     },
+     "required": [
+      "namespace",
+      "deployment"
+     ],
+     "type": "object"
+    },
+    "name": "rollback"
+   },
+   {
+    "description": "Delete a single pod. Its ReplicaSet recreates it.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "namespace": {
+       "description": "Kubernetes namespace",
+       "type": "string"
+      },
+      "pod": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "namespace",
+      "pod"
+     ],
+     "type": "object"
+    },
+    "name": "delete_pod"
+   },
+   {
+    "description": "Page the owning team with a summary. Use when the fix needs something you cannot do with these tools.",
+    "input_schema": {
+     "additionalProperties": false,
+     "properties": {
+      "summary": {
+       "type": "string"
+      }
+     },
+     "required": [
+      "summary"
+     ],
+     "type": "object"
+    },
+    "name": "escalate"
+   }
+  ]
+ },
+ "responses": {
+  "2": {
+   "content": [
+    {
+     "text": "Scaled frontend to 10 replicas to absorb the spike; latency should recover.",
+     "type": "text"
+    }
+   ],
+   "stop_reason": "end_turn",
+   "usage": {
+    "input_tokens": 381,
+    "output_tokens": 26
+   }
+  }
+ }
+}

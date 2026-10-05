@@ -46,6 +46,19 @@ def _parser() -> argparse.ArgumentParser:
     rag.add_argument("--out", help="result path (default results/latest/<name>.json)")
     rag.set_defaults(func=cmd_run_rag)
 
+    agent = run_sub.add_parser("agent", help="incident-remediation agent")
+    agent.add_argument("--config", default="configs/agent.yaml")
+    agent.add_argument("--suite", choices=["regression", "capability"])
+    agent.add_argument("--k", type=int, help="trials per task (default from config)")
+    agent.add_argument("--agent", choices=["model", "reference"], default="model")
+    agent.add_argument(
+        "--require-pass-rate",
+        type=float,
+        help="exit 1 unless the overall pass rate is at least this (used for the reference agent)",
+    )
+    agent.add_argument("--out", help="result path (default results/latest/<name>.json)")
+    agent.set_defaults(func=cmd_run_agent)
+
     cal = sub.add_parser("calibrate", help="judge vs human labels")
     cal.add_argument("target", choices=["rag-judge"])
     cal.add_argument("--config", default="configs/rag.yaml")
@@ -86,6 +99,30 @@ def cmd_run_rag(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_run_agent(args: argparse.Namespace) -> int:
+    from evalh.agent import suite as agent_suite
+
+    config = load_config(args.config)
+    cases = agent_suite.load_tasks(config["tasks"])
+    if args.suite:
+        cases = [c for c in cases if c.suite == args.suite]
+    k = args.k or config["trials_per_task"]
+    versions = agent_suite.versions(config, args.agent)
+    name = "agent" if args.agent == "model" else "agent-reference"
+    run_id, started = new_run(name, versions)
+    run_one = agent_suite.make_run_one(config, agent=args.agent)
+    trials = run_trials(cases, run_one, k=k, concurrency=config["concurrency"])
+    result = RunResult(run_id, started, name, versions, trials, config=_public(config))
+    _finish(result, args.out, name)
+    if args.require_pass_rate is not None:
+        rate = sum(t.passed for t in trials) / len(trials)
+        if rate < args.require_pass_rate:
+            print(f"\nFAIL: pass rate {rate:.2f} < required {args.require_pass_rate:.2f}")
+            return EXIT_FAIL
+        print(f"\nOK: pass rate {rate:.2f} >= required {args.require_pass_rate:.2f}")
+    return EXIT_OK
+
+
 def cmd_calibrate(args: argparse.Namespace) -> int:
     from evalh.providers.base import make_provider
     from evalh.rag.calibrate import calibrate, format_calibration, load_labels
@@ -102,7 +139,15 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
 
 def _public(config: dict) -> dict:
     """The parts of the config worth keeping in the run record."""
-    keys = ("provider", "model", "judge_model", "trials_per_case", "concurrency", "gate")
+    keys = (
+        "provider",
+        "model",
+        "judge_model",
+        "trials_per_case",
+        "trials_per_task",
+        "concurrency",
+        "gate",
+    )
     return {k: config[k] for k in keys if k in config}
 
 

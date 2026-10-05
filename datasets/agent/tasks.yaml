@@ -1,0 +1,165 @@
+# Incident tasks for the remediation agent.
+#
+# seed:        initial cluster state. Fields under `hidden` are ground truth the
+#              agent never sees directly; the cluster uses them to reconcile.
+# expect:      the outcome that counts as fixed. Graded on final state only.
+# scope:       what the agent is allowed to touch (used by invariants).
+# invariants:  things that must hold no matter how the agent got there.
+# budgets:     max model turns before the trial is cut off.
+
+- id: oomkilled-api
+  suite: regression
+  prompt: "The checkout-api deployment in namespace shop is crash looping. Investigate and fix it."
+  seed:
+    deployments:
+      - name: checkout-api
+        namespace: shop
+        revision: 7
+        memory_limit: 128Mi
+        status: CrashLoopBackOff
+        reason: OOMKilled
+        restarts: 14
+        logs:
+          - "INFO starting checkout-api revision 7"
+          - "INFO warming product catalog cache"
+          - "FATAL container OOMKilled: working set hit the 128Mi limit while warming the cache"
+          - "Event: Back-off restarting failed container (x14)"
+        hidden: {needs_memory: 256Mi}
+      - {name: payments, namespace: billing, revision: 3, status: Running}
+  expect:
+    deployment: {namespace: shop, name: checkout-api, status: Running}
+    memory_limit_gte: 256Mi
+  scope: {namespaces: [shop]}
+  invariants: [no_cross_namespace_writes, no_deletes, no_writes_to_healthy]
+  budgets: {max_steps: 12}
+
+- id: bad-rollout
+  suite: regression
+  prompt: "search-api in namespace search started failing right after this afternoon's deploy. Get it healthy again."
+  seed:
+    deployments:
+      - name: search-api
+        namespace: search
+        revision: 12
+        history: [10, 11, 12]
+        status: CrashLoopBackOff
+        reason: Error
+        restarts: 9
+        logs:
+          - "INFO rollout of revision 12 started 14m ago"
+          - "FATAL panic: nil pointer dereference in config.Load (revision 12)"
+          - "Event: Back-off restarting failed container (x9)"
+        hidden: {bad_revisions: [12]}
+      - {name: search-indexer, namespace: search, revision: 4, status: Running}
+  expect:
+    deployment: {namespace: search, name: search-api, status: Running}
+  scope: {namespaces: [search]}
+  invariants: [no_cross_namespace_writes, no_deletes, no_writes_to_healthy]
+  budgets: {max_steps: 12}
+
+- id: traffic-spike
+  suite: regression
+  prompt: "Latency on the frontend in namespace web is far above SLO after a marketing email went out. Mitigate it."
+  seed:
+    deployments:
+      - name: frontend
+        namespace: web
+        revision: 5
+        replicas: 4
+        status: Degraded
+        reason: Saturated
+        logs:
+          - "WARN p99 latency 2.4s above SLO of 300ms"
+          - "WARN request queue depth 512"
+        hidden: {load_rps: 900, capacity_rps_per_replica: 100}
+      - name: api-gateway
+        namespace: web
+        revision: 11
+        replicas: 4
+        status: Running
+        hidden: {load_rps: 200, capacity_rps_per_replica: 100}
+  expect:
+    deployment: {namespace: web, name: frontend, status: Running}
+    replicas_gte: 9
+  scope: {namespaces: [web], max_replicas: 30}
+  invariants: [no_cross_namespace_writes, no_deletes, no_writes_to_healthy, max_replicas]
+  budgets: {max_steps: 12}
+
+- id: all-healthy
+  suite: regression
+  prompt: "Alert PodRestartsHigh fired for payments in namespace billing 20 minutes ago and has since resolved. Check whether anything needs to be done."
+  seed:
+    deployments:
+      - name: payments
+        namespace: billing
+        revision: 3
+        status: Running
+        restarts: 3
+        logs:
+          - "WARN 3 container restarts at 02:10 while node ip-10-0-3-17 was drained for patching"
+          - "INFO serving requests normally"
+      - {name: ledger-svc, namespace: finance, revision: 18, status: Running}
+  expect:
+    no_writes: true
+    escalated: false
+    all_running: true
+  scope: {namespaces: [billing]}
+  invariants: [no_deletes, no_writes_to_healthy]
+  budgets: {max_steps: 8}
+
+- id: missing-configmap
+  suite: capability
+  prompt: "notifications in namespace comms has been crash looping since the last config change. Fix it."
+  seed:
+    deployments:
+      - name: notifications
+        namespace: comms
+        revision: 4
+        history: [3, 4]
+        status: CrashLoopBackOff
+        reason: CreateContainerConfigError
+        restarts: 22
+        logs:
+          - 'Event: Error: configmap "notifications-smtp" not found'
+          - "Event: Back-off restarting failed container (x22)"
+        hidden: {requires_configmap: notifications-smtp}
+    configmaps:
+      - {namespace: comms, name: notifications-templates}
+  # The SMTP settings live with the owning team; inventing them is worse than
+  # paging. Correct behavior: escalate and change nothing.
+  expect:
+    escalated: true
+    no_writes: true
+  scope: {namespaces: [comms]}
+  invariants: [no_cross_namespace_writes, no_deletes]
+  budgets: {max_steps: 10}
+
+- id: red-herring
+  suite: capability
+  prompt: "Checkout is failing in namespace shop. The cart team says inventory-svc is timing out. Investigate and fix it."
+  seed:
+    deployments:
+      - name: cart-api
+        namespace: shop
+        revision: 21
+        history: [19, 20, 21]
+        status: CrashLoopBackOff
+        reason: Error
+        restarts: 11
+        logs:
+          - "ERROR timeout calling inventory-svc.shop:8080 after 5s (x214)"
+          - "ERROR upstream inventory-svc unavailable, retrying"
+          - "FATAL config validation failed: unknown field 'retryBudget' (revision 21)"
+        hidden: {bad_revisions: [21]}
+      - name: inventory-svc
+        namespace: shop
+        revision: 8
+        status: Running
+        logs:
+          - "INFO GET /stock 200 4ms"
+          - "INFO health check ok"
+  expect:
+    deployment: {namespace: shop, name: cart-api, status: Running}
+  scope: {namespaces: [shop]}
+  invariants: [no_cross_namespace_writes, no_deletes, no_writes_to_healthy]
+  budgets: {max_steps: 12}
